@@ -279,6 +279,332 @@ export function buildOpenApiDoc(version: string) {
           responses: { '201': ok(PostSessionResponse, 'recorded') },
         }),
       },
+      // ─── Curriculum graph: Grade → Subject → LearningPath → PathNode ────────
+      "/api/v1/curriculum/grades": {
+        post: op("Create a grade (name + 1..6 index)", {
+          tag: "curriculum",
+          security: bearer,
+          body: CreateGradeBody,
+          responses: {
+            "201": ok(GradeView, "created"),
+            "400": fail("invalid body"),
+            "409": fail("index already exists"),
+          },
+        }),
+        get: op("List all grades ordered by index", {
+          tag: "curriculum",
+          security: bearer,
+          responses: { "200": { description: "{ items: Grade[], total }" } },
+        }),
+      },
+      "/api/v1/curriculum/grades/{id}": {
+        get: op("Get a grade", {
+          tag: "curriculum",
+          security: bearer,
+          params: ["id"],
+          responses: { "200": ok(GradeView), "404": fail("not found") },
+        }),
+        patch: op("Update a grade name/index", {
+          tag: "curriculum",
+          security: bearer,
+          params: ["id"],
+          body: PatchGradeBody,
+          responses: {
+            "200": ok(GradeView),
+            "404": fail("not found"),
+            "409": fail("index conflict"),
+          },
+        }),
+        delete: op("Delete a grade (cascades to its subjects, paths, nodes)", {
+          tag: "curriculum",
+          security: bearer,
+          params: ["id"],
+          responses: {
+            "204": { description: "deleted" },
+            "404": fail("not found"),
+          },
+        }),
+      },
+      "/api/v1/curriculum/grades/{id}/subjects": {
+        get: op("List the subjects under a grade (ordered by orderIndex)", {
+          tag: "curriculum",
+          security: bearer,
+          params: ["id"],
+          responses: {
+            "200": { description: "{ items: Subject[], total }" },
+            "404": fail("grade not found"),
+          },
+        }),
+      },
+      "/api/v1/curriculum/subjects": {
+        post: op("Create a subject (title, content, orderIndex, gradeId)", {
+          tag: "curriculum",
+          security: bearer,
+          body: CreateSubjectBody,
+          responses: {
+            "201": ok(SubjectView, "created"),
+            "400": fail("invalid body"),
+            "404": fail("grade not found"),
+          },
+        }),
+      },
+      "/api/v1/curriculum/subjects/{id}": {
+        get: op("Get a subject; ?withPaths=true nests its learning paths", {
+          tag: "curriculum",
+          security: bearer,
+          params: ["id"],
+          query: { withPaths: "1 to include nested learningPaths" },
+          responses: {
+            "200": { description: "Subject or SubjectWithPaths" },
+            "404": fail("not found"),
+          },
+        }),
+        patch: op("Update a subject title/content/orderIndex", {
+          tag: "curriculum",
+          security: bearer,
+          params: ["id"],
+          body: PatchSubjectBody,
+          responses: { "200": ok(SubjectView), "404": fail("not found") },
+        }),
+        delete: op(
+          "Delete a subject (cascades to its learning paths + nodes)",
+          {
+            tag: "curriculum",
+            security: bearer,
+            params: ["id"],
+            responses: {
+              "204": { description: "deleted" },
+              "404": fail("not found"),
+            },
+          },
+        ),
+      },
+      "/api/v1/curriculum/learning-paths": {
+        post: op("Create a learning path (name, description, subjectId)", {
+          tag: "curriculum",
+          security: bearer,
+          body: CreateLearningPathBody,
+          responses: {
+            "201": ok(LearningPathView, "created"),
+            "400": fail("invalid body"),
+            "404": fail("subject not found"),
+          },
+        }),
+      },
+      "/api/v1/curriculum/learning-paths/{id}": {
+        get: op(
+          "Get a learning path; ?withNodes=true nests its path nodes (ordered)",
+          {
+            tag: "curriculum",
+            security: bearer,
+            params: ["id"],
+            query: { withNodes: "1 to include nested pathNodes" },
+            responses: {
+              "200": { description: "LearningPath or LearningPathWithNodes" },
+              "404": fail("not found"),
+            },
+          },
+        ),
+        patch: op("Update a learning path name/description", {
+          tag: "curriculum",
+          security: bearer,
+          params: ["id"],
+          body: PatchLearningPathBody,
+          responses: { "200": ok(LearningPathView), "404": fail("not found") },
+        }),
+        delete: op("Delete a learning path (cascades to its path nodes)", {
+          tag: "curriculum",
+          security: bearer,
+          params: ["id"],
+          responses: {
+            "204": { description: "deleted" },
+            "404": fail("not found"),
+          },
+        }),
+      },
+      "/api/v1/curriculum/path-nodes": {
+        post: op(
+          "Create a path node (title, subject, topic, orderIndex, xpReward, learningPathId)",
+          {
+            tag: "curriculum",
+            security: bearer,
+            body: CreatePathNodeBody,
+            responses: {
+              "201": ok(PathNodeView, "created"),
+              "400": fail("invalid body"),
+              "404": fail("learning path not found"),
+            },
+          },
+        ),
+      },
+      "/api/v1/curriculum/path-nodes/{id}": {
+        get: op("Get a path node", {
+          tag: "curriculum",
+          security: bearer,
+          params: ["id"],
+          responses: { "200": ok(PathNodeView), "404": fail("not found") },
+        }),
+        patch: op(
+          "Update a path node title/subject/topic/orderIndex/xpReward",
+          {
+            tag: "curriculum",
+            security: bearer,
+            params: ["id"],
+            body: PatchPathNodeBody,
+            responses: { "200": ok(PathNodeView), "404": fail("not found") },
+          },
+        ),
+        delete: op("Delete a path node", {
+          tag: "curriculum",
+          security: bearer,
+          params: ["id"],
+          responses: {
+            "204": { description: "deleted" },
+            "404": fail("not found"),
+          },
+        }),
+      },
+      "/api/v1/curriculum/learning-paths/{id}/questions": {
+        post: op(
+          "Add a question to a learning path bank (type: choice|drag_drop|spin|connect|numeric_input|tap_image|open_response)",
+          {
+            tag: "curriculum",
+            security: bearer,
+            params: ["id"],
+            body: CreateQuestionBody,
+            responses: {
+              "201": ok(QuestionView, "created"),
+              "400": fail("invalid body"),
+              "404": fail("learning path not found"),
+            },
+          },
+        ),
+        get: op(
+          "List questions in a learning path bank (?difficulty=intro|basic|intermediate|advanced|mastery)",
+          {
+            tag: "curriculum",
+            security: bearer,
+            params: ["id"],
+            query: { difficulty: "filter by difficulty" },
+            responses: {
+              "200": { description: "{ items: Question[], total }" },
+            },
+          },
+        ),
+      },
+      "/api/v1/curriculum/questions/{id}": {
+        get: op("Get a question", {
+          tag: "curriculum",
+          security: bearer,
+          params: ["id"],
+          responses: { "200": ok(QuestionView), "404": fail("not found") },
+        }),
+        patch: op("Update a question difficulty/content/linkedNodeId", {
+          tag: "curriculum",
+          security: bearer,
+          params: ["id"],
+          body: PatchQuestionBody,
+          responses: { "200": ok(QuestionView), "404": fail("not found") },
+        }),
+        delete: op("Delete a question", {
+          tag: "curriculum",
+          security: bearer,
+          params: ["id"],
+          responses: {
+            "204": { description: "deleted" },
+            "404": fail("not found"),
+          },
+        }),
+      },
+      // ─── Placement tests ────────────────────────────────────────────────
+      "/api/v1/placement-tests": {
+        post: op(
+          "Start (or resume) an adaptive placement test — returns the first question",
+          {
+            tag: "placement-tests",
+            security: bearer,
+            body: StartPlacementTestBody,
+            responses: {
+              "201": { description: "{ session, question, progress }" },
+              "404": fail("learning path not found"),
+              "409": fail("no questions in bank"),
+            },
+          },
+        ),
+      },
+      "/api/v1/placement-tests/themes": {
+        get: op("List the three placement-test themes (جسر / طريق / خريطة)", {
+          tag: "placement-tests",
+          security: bearer,
+          responses: { "200": { description: "{ items: [{ id, en, ar }] }" } },
+        }),
+      },
+      "/api/v1/placement-tests/me": {
+        get: op("List the student placement-test history", {
+          tag: "placement-tests",
+          security: bearer,
+          responses: {
+            "200": { description: "{ items: PlacementTestSession[], total }" },
+          },
+        }),
+      },
+      "/api/v1/placement-tests/{id}": {
+        get: op("Get a placement-test session status", {
+          tag: "placement-tests",
+          security: bearer,
+          params: ["id"],
+          responses: {
+            "200": ok(PlacementTestSessionView),
+            "404": fail("not found"),
+          },
+        }),
+      },
+      "/api/v1/placement-tests/{id}/answer": {
+        post: op(
+          "Submit an answer → { correct, nextQuestion, progress, session } (test auto-completes after 10Q)",
+          {
+            tag: "placement-tests",
+            security: bearer,
+            params: ["id"],
+            body: SubmitAnswerBody,
+            responses: {
+              "200": {
+                description:
+                  "{ correct, explanation?, nextQuestion, progress, session }",
+              },
+              "404": fail("not found"),
+              "409": fail("already completed / already answered"),
+            },
+          },
+        ),
+      },
+      "/api/v1/placement-tests/{id}/result": {
+        get: op(
+          "Final result: mastery ratio + placed path node + per-answer breakdown",
+          {
+            tag: "placement-tests",
+            security: bearer,
+            params: ["id"],
+            responses: {
+              "200": ok(PlacementTestResultView),
+              "404": fail("not found"),
+              "409": fail("not completed yet"),
+            },
+          },
+        ),
+      },
+      "/api/v1/placement-tests/{id}/abandon": {
+        post: op("Abandon an in-progress placement test", {
+          tag: "placement-tests",
+          security: bearer,
+          params: ["id"],
+          responses: {
+            "200": ok(PlacementTestSessionView),
+            "404": fail("not found"),
+            "409": fail("not in progress"),
+          },
+        }),
+      },
       '/api/v1/tutor/messages': {
         post: op('Ask OpenMind: student question + optional learning context and/or interactiveResult → structured tutor reply, optionally carrying an approved interactivePayload block (Ask → See → Try)', {
           tag: 'tutor', security: bearer, body: AskTutorBody,
