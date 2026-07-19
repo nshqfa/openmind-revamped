@@ -38,10 +38,8 @@ model Student {
   xpEvents            XpEvent[]
   streakEvents        StreakEvent[]
   playSessions        PlaySession[]
-<<<<<<< HEAD
  // pathProgress        StudentPathProgress[]
   placementTests      PlacementTestSession[]
-=======
   tutorMessages       TutorMessage[]
   learnProgress       LearnProgress[]
   learnEvidence       LearnEvidence[]
@@ -88,7 +86,6 @@ model LearnEvidence {
   createdAt      DateTime @default(now())
 
   @@index([studentId, skillId, createdAt])
->>>>>>> teammate/main
 }
 
 model Game {
