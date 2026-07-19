@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
-import 'api_client.dart';
+import 'registration_sync.dart';
 import 'session.dart';
+import 'stage.dart';
 
 /// Bridges EduMind's onboarding (which stores its own `user_*` prefs) to the
 /// OpenMind engine's [Session]/backend account. Called once when the student
@@ -8,10 +9,26 @@ import 'session.dart';
 /// backend's student schema, registers (for authorized generation), and always
 /// saves the profile locally so the app works offline too.
 class ProfileBridge {
-  // EduMind class labels → elementary grade, clamped to the backend's 1..6.
-  static const _classGrade = {'خامس': 5, 'سادس': 6, 'سابع': 6, 'ثامن': 6};
+  // Legacy EduMind class labels → true grade — kept so profiles saved by the
+  // old setup form still resolve. The redesigned onboarding writes the real
+  // grade (1-9) to `user_grade` directly. Grade 7+ stays 7+ end-to-end — the
+  // stage resolver (core/stage.dart) decides the product mode from it; only
+  // the elementary game-generation boundary ever clamps (server-side).
+  static const _classGrade = {'خامس': 5, 'سادس': 6, 'سابع': 7, 'ثامن': 8};
 
-  // EduMind interest index (profilesetup order) → companion archetype.
+  // Redesigned onboarding interest ids (`user_interests_v2`) → companion
+  // archetype (palette.dart kInterests) — primary-stage game shells only.
+  static const _interestIdArchetype = {
+    'tech_robotics': 'robots', // تكنولوجيا وروبوتات
+    'games_challenges': 'cars', // ألعاب وتحديات
+    'drawing_design': 'art', // رسم وتصميم
+    'sports_movement': 'football', // رياضة وحركة
+    'reading_stories': 'royalty', // قراءة وقصص
+    'helping_people': 'cats', // مساعدة الناس
+    'nature_environment': 'ocean', // طبيعة وبيئة
+  };
+
+  // Legacy interest index (old profilesetup order) → companion archetype.
   static const _interestArchetype = [
     'robots', // ألعاب وتحديات
     'football', // رياضة وحركة
@@ -33,33 +50,53 @@ class ProfileBridge {
     if (name.isEmpty) name = 'Player';
     if (name.length > 24) name = name.substring(0, 24);
 
-    final grade = _classGrade[prefs.getString('user_class')] ?? 5;
+    final grade = prefs.getInt('user_grade') ??
+        _classGrade[prefs.getString('user_class')] ??
+        5;
+    final gender = prefs.getString('user_gender');
 
+    // Personal interests (1-2, both stages) — the primary AI-flavor signal.
+    // See OnboardingFlow._interestsStep.
+    final interests = prefs.getStringList('user_interests_v2') ?? const [];
+
+    // Elementary companion-sprite archetype — a primary-stage-only concept,
+    // derived from the first selected interest so the game shells' companion
+    // keeps working unchanged.
     String? interest;
-    final interests = prefs.getStringList('user_interests') ?? const [];
-    if (interests.isNotEmpty) {
-      final idx = int.tryParse(interests.first);
-      if (idx != null && idx >= 0 && idx < _interestArchetype.length) {
-        interest = _interestArchetype[idx];
+    if (stageForGrade(grade) == LearningStage.primaryGames) {
+      for (final id in interests) {
+        interest = _interestIdArchetype[id];
+        if (interest != null) break;
+      }
+      if (interest == null) {
+        final legacy = prefs.getStringList('user_interests') ?? const [];
+        if (legacy.isNotEmpty) {
+          final idx = int.tryParse(legacy.first);
+          if (idx != null && idx >= 0 && idx < _interestArchetype.length) {
+            interest = _interestArchetype[idx];
+          }
+        }
       }
     }
 
     final profile = <String, dynamic>{
       'name': name,
+      if (gender != null) 'gender': gender,
       'grade': grade,
+      'stage': stageForGrade(grade).wire, // offline fallback; server overwrites
       'language': language,
       'color': colorHex,
       if (interest != null) 'interest': interest,
+      if (interests.isNotEmpty) 'interests': interests,
       'dailyGoal': 3,
     };
 
-    // Register for authorized generation; offline is fine — replay/demo still
-    // work, and a new game can register later from the settings screen.
-    try {
-      final res = await Api.createStudent(profile);
-      await Session.instance.setAuth(res['studentId'] as String, res['token'] as String);
-    } catch (_) {/* offline — generation needs a server, everything else works */}
-
+    // Save first so the app works offline, then register through the same
+    // retry path used at app startup and app resume (RegistrationSync) — a
+    // flaky connection here just leaves the account pending, never lost,
+    // and the backend's student view (trusted grade/stage) overwrites the
+    // local guess once it lands.
     await Session.instance.setProfile(profile);
+    await RegistrationSync.retry();
   }
 }

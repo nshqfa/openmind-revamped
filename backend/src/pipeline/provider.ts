@@ -34,8 +34,46 @@ import {
   NORMALIZER_SYSTEM_PROMPT,
   REFINE_SYSTEM_PROMPT,
   SPEC_SYSTEM_PROMPT,
+  TUTOR_SYSTEM_PROMPT,
   buildRepairUserMessage,
 } from '../llm/prompts.js';
+import {
+  TutorReplySchema,
+  tutorReplyJsonSchema,
+  type InteractiveResult,
+  type TutorContext,
+  type TutorReply,
+} from '../tutor/contract.js';
+import type { LearningStage } from '../learning/stage.js';
+
+export interface TutorReplyParams {
+  student: {
+    name: string;
+    grade: number;
+    /** Resolved server-side from the authenticated grade — never client-sent. */
+    stage: LearningStage;
+    language: string;
+    interest: string | null;
+    /** Middle-school context lens chosen by the student (server-stored). Legacy — a fallback flavor only when interests is empty. */
+    learningContext: string | null;
+    /** Personal interests chosen at onboarding (1-2, both stages) — the primary source for real-life examples/activities. */
+    interests: string[];
+    /** 'm' | 'f' | null — used ONLY for Arabic grammatical addressing. Never anything else. */
+    gender: string | null;
+  };
+  question: string;
+  context: TutorContext | null;
+  /**
+   * Interactive tool ids this learner may be offered — filtered SERVER-SIDE
+   * by grade, stage, subject and availability (tutor/tools/registry.ts)
+   * before the model ever selects; the route re-checks the reply against it.
+   */
+  availableTools: string[];
+  /** What the learner just did on the last interactive block, if anything. */
+  interactiveResult: InteractiveResult | null;
+  /** Most recent turns of this conversation, oldest first. */
+  history: Array<{ role: 'student' | 'tutor'; content: string }>;
+}
 
 export interface FactCheckPiece {
   id: string;
@@ -72,6 +110,7 @@ export interface ContentProvider {
     name: string;
     summary: Record<string, unknown>;
   }): Promise<{ data: EnrichedFeedback; model: string }>;
+  tutorReply(params: TutorReplyParams): Promise<{ data: TutorReply; model: string }>;
 }
 
 export class LiveProvider implements ContentProvider {
@@ -183,6 +222,31 @@ export class LiveProvider implements ContentProvider {
       zodSchema: EnrichedFeedbackSchema,
       maxTokens: 800,
       stage: 'feedback',
+    });
+    return { data: res.data, model: res.model };
+  }
+
+  async tutorReply(params: TutorReplyParams) {
+    // The system prompt stays static (prompt-cached); everything volatile —
+    // student profile, learning context, conversation history — rides the
+    // user message, mirroring every other stage in this pipeline.
+    const res = await structuredCall({
+      model: config.modelDefault,
+      system: TUTOR_SYSTEM_PROMPT,
+      user: JSON.stringify({
+        student: params.student,
+        context: params.context,
+        availableTools: params.availableTools,
+        interactiveResult: params.interactiveResult,
+        history: params.history,
+        question: params.question,
+      }),
+      jsonSchema: tutorReplyJsonSchema(),
+      zodSchema: TutorReplySchema,
+      // Interactive payloads (items, order, buckets) need more room than a
+      // text-only reply.
+      maxTokens: 2500,
+      stage: 'tutor',
     });
     return { data: res.data, model: res.model };
   }

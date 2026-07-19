@@ -12,12 +12,19 @@ export interface StudentRow {
   grade: number;
   language: string;
   color: string;
+  /** Elementary game-engine archetype (primary stage). */
   interest: string | null;
+  /** Middle-school context lens (middle stage) — legacy; fallback only when interests is empty. */
+  learningContext: string | null;
+  /** Personal interests chosen at onboarding (1-2, both stages) — the primary AI-flavor signal. */
+  interests: string[];
   dailyGoal: number;
   xp: number;
   streakCount: number;
   streakLastPlayedAt: Date | null;
   tokenHash: string;
+  /** Client-generated per-install idempotency key for POST /students — see routes/students.ts. */
+  installationId: string | null;
   createdAt: Date;
 }
 
@@ -148,6 +155,67 @@ export interface PlacementTestSessionRow {
   completedAt: Date | null;
 }
 
+/**
+ * One completed middle-school learning experience. A separate progress domain
+ * from games/PlaySession on purpose: primary game history and middle-school
+ * learning journeys never overwrite each other.
+ */
+export interface LearnProgressRow {
+  id: string;
+  studentId: string;
+  pathId: string;
+  experienceId: string;
+  completedAt: Date;
+}
+
+/**
+ * One learner submission — the generalized LearningSignal, one small
+ * append-only row per attempt. Readiness is DERIVED from these (per skill ×
+ * representation × context), never stored. `id` is client-generated so the
+ * log is idempotent across the local cap, the batch upsert, and two-way sync.
+ * A separate domain from completion: evidence never overwrites LearnProgress.
+ */
+export interface LearnEvidenceRow {
+  id: string;
+  studentId: string;
+  skillId: string;
+  representation: string;
+  /** Lens id (market, water_energy…) or null. */
+  context: string | null;
+  source: string; // learn_step | checkpoint | tutor_block | tool_verify
+  kind: string; // exploration | prediction | construction | transfer | recall | explanation
+  outcome: string; // correct | partially_correct | incorrect | explored
+  verification: string; // server_verified | client_reported
+  attempt: number;
+  hints: number;
+  recovered: boolean;
+  errorPattern: string | null;
+  toolId: string | null;
+  pathId: string | null;
+  experienceId: string | null;
+  stepIndex: number | null;
+  /** Time-on-task; never interpreted alone (see readiness derivation). */
+  ms: number | null;
+  createdAt: Date;
+}
+
+/** Client-authored evidence, id + createdAt included (both come from the client). */
+export type LearnEvidenceInput = Omit<LearnEvidenceRow, 'studentId'>;
+
+/** One turn of a tutor conversation (Ask OpenMind / in-experience help). */
+export interface TutorMessageRow {
+  id: string;
+  studentId: string;
+  conversationId: string;
+  role: 'student' | 'tutor';
+  content: string;
+  /** Tutor turns: responseType of the structured reply. */
+  responseType: string | null;
+  /** Learning context attached to the turn (subject, experience, step…). */
+  context: Record<string, unknown> | null;
+  createdAt: Date;
+}
+
 export interface Store {
   kind: 'memory' | 'prisma';
   ping(): Promise<boolean>;
@@ -155,7 +223,9 @@ export interface Store {
   createStudent(data: Omit<StudentRow, 'id' | 'createdAt' | 'xp' | 'streakCount' | 'streakLastPlayedAt'>): Promise<StudentRow>;
   getStudentByToken(tokenHash: string): Promise<StudentRow | null>;
   getStudent(id: string): Promise<StudentRow | null>;
-  updateStudent(id: string, patch: Partial<Pick<StudentRow, 'name' | 'color' | 'interest' | 'language' | 'dailyGoal' | 'grade' | 'gender' | 'xp' | 'streakCount' | 'streakLastPlayedAt'>>): Promise<StudentRow>;
+  /** Idempotent-retry lookup for POST /students — see routes/students.ts. */
+  getStudentByInstallationId(installationId: string): Promise<StudentRow | null>;
+  updateStudent(id: string, patch: Partial<Pick<StudentRow, 'name' | 'color' | 'interest' | 'learningContext' | 'interests' | 'language' | 'dailyGoal' | 'grade' | 'gender' | 'xp' | 'streakCount' | 'streakLastPlayedAt' | 'tokenHash'>>): Promise<StudentRow>;
 
   createGame(data: Omit<GameRow, 'createdAt' | 'deletedAt' | 'bestScore' | 'playCount' | 'lastPlayedAt'>): Promise<GameRow>;
   getGame(id: string): Promise<GameRow | null>;
@@ -165,6 +235,18 @@ export interface Store {
   createPlaySession(data: Omit<PlaySessionRow, 'id' | 'createdAt'>): Promise<PlaySessionRow>;
   recentPlaySessions(studentId: string, limit: number): Promise<PlaySessionRow[]>;
   playSessionsSince(studentId: string, since: Date): Promise<PlaySessionRow[]>;
+
+  /** Idempotent completion upsert; `created` is false when it was already recorded. */
+  upsertLearnProgress(studentId: string, pathId: string, experienceId: string): Promise<{ row: LearnProgressRow; created: boolean }>;
+  listLearnProgress(studentId: string): Promise<LearnProgressRow[]>;
+
+  /** Idempotent batch append of evidence, deduped by client-generated id. */
+  upsertLearnEvidence(studentId: string, events: LearnEvidenceInput[]): Promise<{ accepted: number }>;
+  listLearnEvidence(studentId: string, since?: Date): Promise<LearnEvidenceRow[]>;
+
+  createTutorMessage(data: Omit<TutorMessageRow, 'id' | 'createdAt'>): Promise<TutorMessageRow>;
+  /** Messages of one conversation, oldest first (capped at limit, newest kept). */
+  listTutorMessages(studentId: string, conversationId: string, limit: number): Promise<TutorMessageRow[]>;
 
   addXpEvent(studentId: string, amount: number, reason: string): Promise<XpEventRow>;
   listXpEvents(studentId: string, limit: number): Promise<XpEventRow[]>;

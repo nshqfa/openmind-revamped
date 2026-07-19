@@ -80,8 +80,65 @@ class Api {
   static Future<Map<String, dynamic>> createStudent(Map<String, dynamic> body) async =>
       (await post('/api/v1/students', body, false)) as Map<String, dynamic>;
 
+  /// Trusted student view (grade, stage, learningContext, …).
+  static Future<Map<String, dynamic>> me() async =>
+      (await get('/api/v1/students/me')) as Map<String, dynamic>;
+
+  static Future<Map<String, dynamic>> patchMe(Map<String, dynamic> body) async =>
+      (await patch('/api/v1/students/me', body)) as Map<String, dynamic>;
+
+  /// Middle-school learning progress — completed experiences on the server.
+  static Future<Map<String, dynamic>> learnProgress() async =>
+      (await get('/api/v1/learn/progress')) as Map<String, dynamic>;
+
+  /// Idempotent completion upsert for one experience.
+  static Future<Map<String, dynamic>> putLearnProgress(String pathId, String experienceId) async =>
+      (await _decode(await http
+          .put(Uri.parse('$_base/api/v1/learn/progress'),
+              headers: _headers(withBody: true),
+              body: jsonEncode({'pathId': pathId, 'experienceId': experienceId}))
+          .timeout(const Duration(seconds: 20)))) as Map<String, dynamic>;
+
+  /// Server-side verification for a lesson-experience widget's attempt — the
+  /// same ToolDescriptor.verifyResult the tutor trusts, reused so an authored
+  /// lesson challenge is never graded by client code alone. Returns
+  /// {verdict, errorPattern?}: verdict is 'correct' | 'partially_correct' |
+  /// 'incorrect' | 'explored' | 'invalid' | 'unverifiable'; errorPattern is
+  /// the tool's diagnosis of a wrong answer when it has one. When [evidence]
+  /// (skill/representation/position context) is supplied, the server also
+  /// records the graded attempt as an evidence row.
+  static Future<Map<String, dynamic>> verifyTool(
+    String toolId,
+    Map<String, dynamic> data,
+    Map<String, dynamic> answer, {
+    Map<String, dynamic>? evidence,
+  }) async =>
+      (await post('/api/v1/tools/$toolId/verify', {
+        'data': data,
+        'answer': answer,
+        if (evidence != null) 'evidence': evidence,
+      })) as Map<String, dynamic>;
+
+  /// The learner's evidence log on the server (append-only, ids are
+  /// client-generated — see LearnEvidenceStore).
+  static Future<Map<String, dynamic>> learnEvidence() async =>
+      (await get('/api/v1/learn/evidence')) as Map<String, dynamic>;
+
+  /// Idempotent batch append of evidence events (deduped by event id).
+  static Future<Map<String, dynamic>> postLearnEvidence(
+          List<Map<String, dynamic>> events) async =>
+      (await post('/api/v1/learn/evidence', {'events': events}))
+          as Map<String, dynamic>;
+
   static Future<Map<String, dynamic>> createGame(Map<String, dynamic> body) async =>
       (await post('/api/v1/games', body)) as Map<String, dynamic>;
+
+  /// Ask Hudhud: question + optional learning context → structured reply.
+  static Future<Map<String, dynamic>> askTutor(Map<String, dynamic> body) async =>
+      (await post('/api/v1/tutor/messages', body)) as Map<String, dynamic>;
+
+  static Future<Map<String, dynamic>> tutorConversation(String id) async =>
+      (await get('/api/v1/tutor/conversations/$id')) as Map<String, dynamic>;
 
   static Future<Map<String, dynamic>> gameStatus(String id) async =>
       (await get('/api/v1/games/$id')) as Map<String, dynamic>;

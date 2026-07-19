@@ -1,6 +1,7 @@
 import 'package:edumind/app_localizations.dart';
 import 'package:flutter/material.dart';
 
+import 'core/app_theme.dart';
 import 'core/palette.dart';
 import 'data/game_store.dart';
 import 'features/composer/composer_screen.dart';
@@ -150,7 +151,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFFE0F7FA), Color(0xFFF3D6F0), Color(0xFFE8F5E9)],
+          colors: [AppColors.ivory, AppColors.softBlue, AppColors.cream],
         ),
       ),
     ),
@@ -333,19 +334,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               offset: Offset(0, _guide.value * -12),
               child: child,
             ),
-            child: Column(
-              children: [
-                const Mascot(size: 96, expression: MascotExpression.happy),
-                Text(
-                  l.translate('tap_to_play'),
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: cs.secondary,
-                  ),
-                ),
-              ],
-            ),
+            child: const Mascot(size: 96, expression: MascotExpression.happy),
           ),
         ),
       ],
@@ -446,7 +435,7 @@ class _DottedPathPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.orange.withValues(alpha: 0.4)
+      ..color = AppColors.orange.withValues(alpha: 0.4)
       ..strokeWidth = 4
       ..style = PaintingStyle.stroke;
     final path = Path();

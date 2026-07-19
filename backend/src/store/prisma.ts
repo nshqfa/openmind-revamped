@@ -5,6 +5,9 @@ import type {
   GameRow,
   GameStatus,
   GradeRow,
+  LearnEvidenceInput,
+  LearnEvidenceRow,
+  LearnProgressRow,
   LearningPathRow,
   LearningPathWithNodes,
   PathNodeRow,
@@ -16,6 +19,7 @@ import type {
   StudentRow,
   SubjectRow,
   SubjectWithPaths,
+  TutorMessageRow,
   XpEventRow,
 } from './types.js';
 
@@ -71,6 +75,9 @@ export async function createPrismaStore(): Promise<Store> {
     async getStudent(id) {
       return (await prisma.student.findUnique({ where: { id } })) as StudentRow | null;
     },
+    async getStudentByInstallationId(installationId) {
+      return (await prisma.student.findUnique({ where: { installationId } })) as StudentRow | null;
+    },
     async updateStudent(id, patch) {
       return (await prisma.student.update({ where: { id }, data: patch })) as StudentRow;
     },
@@ -115,6 +122,53 @@ export async function createPrismaStore(): Promise<Store> {
       return (await prisma.playSession.findMany({
         where: { studentId, createdAt: { gte: since } },
       })) as PlaySessionRow[];
+    },
+
+    async upsertLearnProgress(studentId, pathId, experienceId) {
+      const where = { studentId_pathId_experienceId: { studentId, pathId, experienceId } };
+      const existing = await prisma.learnProgress.findUnique({ where });
+      if (existing) return { row: existing as LearnProgressRow, created: false };
+      const row = (await prisma.learnProgress.create({
+        data: { studentId, pathId, experienceId },
+      })) as LearnProgressRow;
+      return { row, created: true };
+    },
+    async listLearnProgress(studentId) {
+      return (await prisma.learnProgress.findMany({
+        where: { studentId },
+        orderBy: { completedAt: 'asc' },
+      })) as LearnProgressRow[];
+    },
+
+    async upsertLearnEvidence(studentId: string, events: LearnEvidenceInput[]) {
+      if (events.length === 0) return { accepted: 0 };
+      // Idempotent by client-generated id — skipDuplicates makes a replayed
+      // batch (offline retry, cross-device sync) a no-op for seen ids.
+      const res = await prisma.learnEvidence.createMany({
+        data: events.map((e) => ({ ...e, studentId })),
+        skipDuplicates: true,
+      });
+      return { accepted: res.count };
+    },
+    async listLearnEvidence(studentId: string, since?: Date) {
+      return (await prisma.learnEvidence.findMany({
+        where: { studentId, ...(since ? { createdAt: { gte: since } } : {}) },
+        orderBy: { createdAt: 'asc' },
+      })) as LearnEvidenceRow[];
+    },
+
+    async createTutorMessage(data) {
+      return (await prisma.tutorMessage.create({
+        data: { ...data, context: data.context ?? undefined },
+      })) as TutorMessageRow;
+    },
+    async listTutorMessages(studentId, conversationId, limit) {
+      const rows = (await prisma.tutorMessage.findMany({
+        where: { studentId, conversationId },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+      })) as TutorMessageRow[];
+      return rows.reverse(); // oldest first, newest kept
     },
 
     async addXpEvent(studentId, amount, reason) {

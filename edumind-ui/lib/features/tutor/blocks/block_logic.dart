@@ -1,0 +1,140 @@
+/// Pure outcome rules for the tutor's interactive blocks — no widgets, fully
+/// unit-testable. The widgets gather the learner's action; these functions
+/// decide what it amounted to (the `correctnessOrOutcome` wire value).
+library;
+
+import '../tutor_models.dart';
+
+/// number_line: the placed value counts when it lands within the tolerance
+/// (defaulting to half a step — "the nearest snap wins").
+InteractiveOutcome numberLineOutcome({
+  required num value,
+  required num target,
+  required num step,
+  num? tolerance,
+}) {
+  final tol = tolerance ?? step / 2;
+  return (value - target).abs() <= tol + 1e-9
+      ? InteractiveOutcome.correct
+      : InteractiveOutcome.incorrect;
+}
+
+/// balance_scale: the beam levels when coefficient*value + constant lands
+/// within the tolerance of target (defaulting to half a step) — the same
+/// "nearest snap wins" convention as numberLineOutcome. Shared by the tutor
+/// adapter (instant local preview) AND the lesson-experience adapter's
+/// server-verify request builder (same equation, same math, single source).
+InteractiveOutcome balanceOutcome({
+  required num value,
+  required num coefficient,
+  required num constant,
+  required num target,
+  required num step,
+  num? tolerance,
+}) {
+  final tol = tolerance ?? step / 2;
+  final lhs = coefficient * value + constant;
+  return (lhs - target).abs() <= tol + 1e-9
+      ? InteractiveOutcome.correct
+      : InteractiveOutcome.incorrect;
+}
+
+/// balance_scale error diagnosis — the procedural-vs-concept discriminator,
+/// the exact mirror of balanceScaleTool.diagnoseError on the server. Returns
+/// an error-pattern tag (readiness_logic.kErrorPatterns) for a wrong answer,
+/// or null when nothing specific can be said. Used for offline/client-side
+/// diagnosis so the two surfaces agree on the same miss.
+String? balanceDiagnosis({
+  required num value,
+  required num coefficient,
+  required num constant,
+  required num target,
+  required num step,
+}) {
+  final v = value, a = coefficient, b = constant, c = target;
+  // Set x to the whole other side (x = c): doesn't see two sides at all.
+  if (v == c) return 'concept_misunderstanding';
+  // Undid the constant but forgot to divide by the coefficient (x = c - b).
+  if (a != 1 && v == c - b) return 'procedural_error';
+  // Sign flip when undoing the constant (x = (c + b)/a instead of (c - b)/a).
+  if (v == (c + b) / a) return 'procedural_error';
+  // Within a step or two of level: right method, arithmetic slipped.
+  if ((a * v + b - c).abs() <= 2 * step) return 'calculation_slip';
+  return 'concept_misunderstanding';
+}
+
+/// order_sequence: how many picked positions match the correct order.
+int orderCorrectPositions(List<String> picked, List<String> correct) {
+  var n = 0;
+  for (var i = 0; i < picked.length && i < correct.length; i++) {
+    if (picked[i] == correct[i]) n++;
+  }
+  return n;
+}
+
+InteractiveOutcome orderOutcome(List<String> picked, List<String> correct) {
+  final n = orderCorrectPositions(picked, correct);
+  if (picked.length == correct.length && n == correct.length) {
+    return InteractiveOutcome.correct;
+  }
+  return n > 0 ? InteractiveOutcome.partiallyCorrect : InteractiveOutcome.incorrect;
+}
+
+/// match_pairs: all pairs always end up matched (wrong picks stay open for
+/// retry), so the outcome reads from HOW MANY tries went wrong on the way.
+InteractiveOutcome matchOutcome(int mistakes, int totalPairs) {
+  if (mistakes == 0) return InteractiveOutcome.correct;
+  return mistakes < totalPairs
+      ? InteractiveOutcome.partiallyCorrect
+      : InteractiveOutcome.incorrect;
+}
+
+/// match_pairs: a deterministic display order for the right column — shuffled
+/// away from the pair order (so position never gives the answer away) but
+/// stable for the same payload across rebuilds, restores, and tests.
+List<int> matchDisplayOrder(int n, String seedSource) {
+  var seed = 0;
+  for (final c in seedSource.codeUnits) {
+    seed = (seed * 31 + c) & 0x7fffffff;
+  }
+  final order = List<int>.generate(n, (i) => i);
+  for (var i = n - 1; i > 0; i--) {
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+    final j = seed % (i + 1);
+    final tmp = order[i];
+    order[i] = order[j];
+    order[j] = tmp;
+  }
+  // If the shuffle landed on the identity (answers aligned row by row),
+  // rotate by one so the layout never leaks the mapping.
+  var identity = true;
+  for (var i = 0; i < n; i++) {
+    if (order[i] != i) {
+      identity = false;
+      break;
+    }
+  }
+  if (identity && n > 1) {
+    order.add(order.removeAt(0));
+  }
+  return order;
+}
+
+/// sort_buckets: outcome from the per-item score.
+InteractiveOutcome sortOutcome(int correctCount, int total) {
+  if (correctCount == total) return InteractiveOutcome.correct;
+  return correctCount > 0
+      ? InteractiveOutcome.partiallyCorrect
+      : InteractiveOutcome.incorrect;
+}
+
+/// Human-friendly number: 0.75 stays 0.75, 3.0 becomes 3.
+String formatNum(num v) {
+  if (v == v.roundToDouble()) return v.round().toString();
+  var s = v.toStringAsFixed(2);
+  while (s.endsWith('0')) {
+    s = s.substring(0, s.length - 1);
+  }
+  if (s.endsWith('.')) s = s.substring(0, s.length - 1);
+  return s;
+}

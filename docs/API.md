@@ -30,6 +30,7 @@ over plain REST.
    - [Games](#games)
    - [Play sessions](#play-sessions)
    - [Review mode](#review-mode)
+   - [Tutor (Ask OpenMind)](#tutor-ask-openmind)
    - [Progress & stats](#progress--stats)
 5. [The GameSpec object](#the-gamespec-object)
 6. [Progressive start in depth](#progressive-start-in-depth)
@@ -146,10 +147,11 @@ Request:
 ```json
 {
   "name": "Sami",                 // nickname only, 1–24 chars (required)
-  "grade": 3,                     // 1–6 (required, elementary)
+  "grade": 3,                     // 1–9 (required): 1–6 primary, 7–9 middle school
   "language": "en",               // "en" | "ar"   (default "en")
   "color": "#1CB0F6",             // favorite color, #RRGGBB (default #58CC02)
-  "interest": "space",            // archetype id (optional, → companion sprite)
+  "interest": "space",            // elementary archetype id (optional, → companion sprite)
+  "learningContext": null,        // middle-school context lens id (optional)
   "gender": null,                 // "m" | "f" | null — Arabic grammar ONLY (optional)
   "dailyGoal": 3                  // 1 | 3 | 5 (default 3)
 }
@@ -167,12 +169,21 @@ Response `201`:
 Valid `interest` ids: `dinosaurs`, `space`, `football`, `cats`, `robots`,
 `ocean`, `cars`, `royalty`, `art`, `music`.
 
+The student view also carries a server-resolved **`stage`** —
+`"primary_games"` (grades 1–6, the elementary games product) or
+`"middle_interactive_learning"` (grades 7–9, journeys/experiences/tutor).
+Clients should render the experience for this field rather than re-deriving
+it from the grade. `learningContext` is the middle-school context lens
+(separate from the elementary `interest`); valid ids: `market`, `building`,
+`water_energy`, `roads_transport`, `technology`.
+
 #### `GET /api/v1/students/me`
 Returns the authenticated student's profile (the `student` shape above).
 
 #### `PATCH /api/v1/students/me`
-Partial update — any of `name`, `color`, `interest`, `language`, `dailyGoal`,
-`grade`, `gender`. Returns the updated profile.
+Partial update — any of `name`, `color`, `interest`, `learningContext`,
+`language`, `dailyGoal`, `grade`, `gender`. Absent fields are left untouched.
+Returns the updated profile.
 
 ---
 
@@ -348,6 +359,128 @@ has played enough to miss a few questions.
 #### `POST /api/v1/review/sessions`
 Same body/response as `POST /games/:id/sessions`, but for a review session (no
 backing game row). Counts toward the streak and daily goal.
+
+---
+
+### Tutor (Ask OpenMind)
+
+#### `POST /api/v1/tutor/messages`
+The Ask-OpenMind learning assistant. Sends a student question plus optional
+learning context; returns a **structured learning response** (never free-form
+chat). Pedagogy is enforced server-side: guide first, reveal later.
+
+```jsonc
+// request
+{
+  "question": "كيف أحسب مساحة المثلث؟",
+  "conversationId": "…",            // omit to start a new conversation
+  "context": {                       // all optional
+    "source": "ask" | "experience",
+    "subject": "الرياضيات",
+    "pathId": "neighborhood_engineer",
+    "experienceId": "triangle_garden",
+    "concept": "مساحة المثلث",
+    "stepKind": "challenge",
+    "stepTitle": "…",
+    "state": "base=4, height=4, area=8, target=24",
+    "attempts": ["…"],
+    "completedExperiences": ["…"]
+  }
+}
+// response 201
+{
+  "conversationId": "…",
+  "reply": {
+    "message": "…",
+    "responseType": "explanation|hint|question|encouragement|correction|next_step",
+    "followUpQuestion": "…" ,        // or null
+    "suggestedAction": "none|try_again|show_hint|real_life_example|open_related_experience|ask_followup",
+    "relatedConcept": "…",           // or null
+    "needsClarification": false,
+    "interactivePayload": { … }      // approved block or null — see below
+  },
+  "model": "claude-haiku-4-5"        // "mock" in MOCK_LLM mode
+}
+```
+
+Identity (grade, language, name) always comes from the bearer token's student
+row — the context is learning state only. Questions are moderated
+(`422 QUESTION_REJECTED`) and rate-limited per student
+(`MAX_TUTOR_MESSAGES_PER_HOUR`, default 60 → `429 RATE_LIMITED`).
+
+##### Interactive blocks (Ask → See → Try)
+
+When acting would teach better than reading, the tutor may attach ONE
+`interactivePayload` from a closed, versioned registry — the model selects a
+type and fills data; it can never emit code, markup, or free-form UI:
+
+| type | learner action | key data |
+|---|---|---|
+| `number_line` | place a value on a bounded line | `min, max, step, target, tolerance, unit` |
+| `order_sequence` | arrange 3–8 items in order | `items[{id,label}], correctOrder` |
+| `sort_buckets` | classify 3–8 items into 2–4 groups | `buckets[{id,label}], items[{id,label,bucketId}]` |
+
+Every payload carries `version` (registry version, currently 1), `title`,
+`instructions`, `expectedLearningAction`, `followUpPrompt`. Payloads are
+Zod-validated structurally at generation and semantically in the route
+(`validateInteractivePayload`); anything unrenderable is dropped to `null`
+while the text reply still ships. Clients render only registered types.
+
+After the learner acts, the client sends the next message with an
+`interactiveResult`:
+
+```jsonc
+{
+  "question": "رتبت المراحل …",       // human-readable action summary
+  "conversationId": "…",
+  "interactiveResult": {
+    "blockType": "order_sequence",
+    "attempted": true,
+    "answerOrState": "رتبت: تبخر → تكاثف → هطول → جريان",
+    "correctnessOrOutcome": "correct|partially_correct|incorrect|explored",
+    "learningSignal": "…"             // optional
+  }
+}
+```
+
+The tutor's follow-up reacts to the actual result. Both the offered payload
+(tutor turn) and the learner result (student turn) persist on the
+conversation, so restored threads can re-render their interactive moments.
+
+#### `GET /api/v1/tutor/conversations/:id`
+Messages of one conversation (oldest first): `{ conversationId, messages:
+[{ id, role: "student"|"tutor", content, responseType, interactivePayload,
+interactiveResult, createdAt }] }`. Conversations are private to their
+student.
+
+The tutor also receives the trusted `stage` and `learningContext` from the
+authenticated student row (never from the client), so replies match the
+learner's educational stage and chosen context lens.
+
+---
+
+### Learning progress (middle school)
+
+Completion state for the interactive learning experiences (grades 7–9).
+A separate domain from games/play-sessions on the same student identity —
+the two never mix. The Flutter client stays local-first (SharedPreferences)
+and reconciles with these endpoints so progress survives reinstalls and
+follows the student across devices.
+
+#### `GET /api/v1/learn/progress`
+```json
+{ "items": [ { "pathId": "neighborhood_engineer",
+               "experienceId": "triangle_garden",
+               "completedAt": "2026-07-03T12:00:00.000Z" } ],
+  "total": 1 }
+```
+
+#### `PUT /api/v1/learn/progress`
+Mark one experience completed. Idempotent: replays return `200` with the
+original timestamp; first completion returns `201`.
+
+Request: `{ "pathId": "…", "experienceId": "…" }`
+Response: `{ "saved": true, "alreadyCompleted": false, "completedAt": "…", "total": 1 }`
 
 ---
 

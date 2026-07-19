@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
-/// The Duolingo-inspired design language — mirrors shared/src/constants.ts.
+/// The dark "game studio" palette — the composer and game player deliberately
+/// keep a bright-on-dark Duolingo register, distinct from the warm app system
+/// in core/app_theme.dart (AppColors). Everything OUTSIDE the game-creation and
+/// game-player flows should use AppColors / the theme, not these constants.
+/// Also still the home of hexToColor/colorToHex and the game/emoji constants.
 class Palette {
   static const green = Color(0xFF58CC02);
   static const greenShadow = Color(0xFF46A302);
@@ -57,6 +61,7 @@ const kThemeEmoji = {
 const kColorChoices = [
   Color(0xFF58CC02), Color(0xFF1CB0F6), Color(0xFFFFC800), Color(0xFFCE82FF),
   Color(0xFFFF6F61), Color(0xFF00C2A8), Color(0xFFFF8FB3), Color(0xFFFFA94D),
+  Color(0xFF1C1C1E),
 ];
 
 String colorToHex(Color c) {
@@ -66,6 +71,12 @@ String colorToHex(Color c) {
 
 Color hexToColor(String hex) =>
     Color(0xFF000000 | int.parse(hex.replaceFirst('#', ''), radix: 16));
+
+/// A readable foreground for text/icons placed on a solid [accent] fill —
+/// white on darker accents, ink on lighter ones (e.g. pink). Same threshold
+/// as widgets/candy_button.dart so filled surfaces read consistently.
+Color onAccentColor(Color accent) =>
+    accent.computeLuminance() > 0.55 ? Palette.dark : Colors.white;
 
 /// Tiny string table — EN/AR for every UI string in the app.
 const Map<String, Map<String, String>> _strings = {

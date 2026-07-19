@@ -1,8 +1,12 @@
 /** In-memory store — dev fallback when DATABASE_URL is unset. Data dies on restart. */
-import { randomUUID } from "node:crypto";
+import { randomUUID } from 'node:crypto';
+import { uniqueConstraintError } from './errors.js';
 import type {
   GameRow,
   GradeRow,
+  LearnEvidenceInput,
+  LearnEvidenceRow,
+  LearnProgressRow,
   LearningPathRow,
   LearningPathWithNodes,
   PathNodeRow,
@@ -14,8 +18,9 @@ import type {
   StudentRow,
   SubjectRow,
   SubjectWithPaths,
+  TutorMessageRow,
   XpEventRow,
-} from "./types.js";
+} from './types.js';
 
 export class MemoryStore implements Store {
   kind = "memory" as const;
@@ -23,6 +28,9 @@ export class MemoryStore implements Store {
   private games = new Map<string, GameRow>();
   private sessions: PlaySessionRow[] = [];
   private xpEvents: XpEventRow[] = [];
+  private tutorMessages: TutorMessageRow[] = [];
+  private learnProgress: LearnProgressRow[] = [];
+  private learnEvidence: LearnEvidenceRow[] = [];
   private streakDays = new Set<string>();
   private cache = new Map<
     string,
@@ -39,12 +47,14 @@ export class MemoryStore implements Store {
     return true;
   }
 
-  async createStudent(
-    data: Omit<
-      StudentRow,
-      "id" | "createdAt" | "xp" | "streakCount" | "streakLastPlayedAt"
-    >,
-  ) {
+  async createStudent(data: Omit<StudentRow, 'id' | 'createdAt' | 'xp' | 'streakCount' | 'streakLastPlayedAt'>) {
+    // Mirrors the Postgres `@unique` constraint on installationId (schema.prisma)
+    // so a duplicate-insert race behaves the same way regardless of store
+    // backend — routes/students.ts relies on this to safely recover instead
+    // of creating two accounts for one installation.
+    if (data.installationId && (await this.getStudentByInstallationId(data.installationId))) {
+      throw uniqueConstraintError('installationId');
+    }
     const row: StudentRow = {
       ...data,
       id: randomUUID(),
@@ -65,6 +75,11 @@ export class MemoryStore implements Store {
 
   async getStudent(id: string) {
     return this.students.get(id) ?? null;
+  }
+
+  async getStudentByInstallationId(installationId: string) {
+    for (const s of this.students.values()) if (s.installationId === installationId) return s;
+    return null;
   }
 
   async updateStudent(id: string, patch: Partial<StudentRow>) {
@@ -138,6 +153,52 @@ export class MemoryStore implements Store {
     return this.sessions.filter(
       (s) => s.studentId === studentId && s.createdAt >= since,
     );
+  }
+
+  async upsertLearnProgress(studentId: string, pathId: string, experienceId: string) {
+    const existing = this.learnProgress.find(
+      (p) => p.studentId === studentId && p.pathId === pathId && p.experienceId === experienceId,
+    );
+    if (existing) return { row: existing, created: false };
+    const row: LearnProgressRow = { id: randomUUID(), studentId, pathId, experienceId, completedAt: new Date() };
+    this.learnProgress.push(row);
+    return { row, created: true };
+  }
+
+  async listLearnProgress(studentId: string) {
+    return this.learnProgress
+      .filter((p) => p.studentId === studentId)
+      .sort((a, b) => a.completedAt.getTime() - b.completedAt.getTime());
+  }
+
+  async upsertLearnEvidence(studentId: string, events: LearnEvidenceInput[]) {
+    let accepted = 0;
+    for (const e of events) {
+      // Idempotent by id (per student): the same event replayed never doubles.
+      if (this.learnEvidence.some((r) => r.studentId === studentId && r.id === e.id)) continue;
+      this.learnEvidence.push({ ...e, studentId });
+      accepted++;
+    }
+    return { accepted };
+  }
+
+  async listLearnEvidence(studentId: string, since?: Date) {
+    return this.learnEvidence
+      .filter((e) => e.studentId === studentId && (!since || e.createdAt >= since))
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  }
+
+  async createTutorMessage(data: Omit<TutorMessageRow, 'id' | 'createdAt'>) {
+    const row: TutorMessageRow = { ...data, id: randomUUID(), createdAt: new Date() };
+    this.tutorMessages.push(row);
+    return row;
+  }
+
+  async listTutorMessages(studentId: string, conversationId: string, limit: number) {
+    const all = this.tutorMessages.filter(
+      (m) => m.studentId === studentId && m.conversationId === conversationId,
+    );
+    return all.slice(-limit);
   }
 
   async addXpEvent(studentId: string, amount: number, reason: string) {
@@ -376,7 +437,7 @@ export class MemoryStore implements Store {
       id: randomUUID(),
       status: 'in_progress',
       answers: [],
-      currentDifficulty: 'medium',
+      currentDifficulty: 'intermediate',
       questionCount: 0,
       placedNodeId: null,
       startedAt: new Date(),

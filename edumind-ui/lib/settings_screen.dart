@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'app_localizations.dart';
 import 'core/api_client.dart';
+import 'core/app_theme.dart';
 import 'core/session.dart';
 import 'features/demos/demos_screen.dart';
 import 'languageswitchertile.dart';
-import 'theme_selection_screen.dart';
 
 /// Settings: language selector, theme, and the backend server address (so a
 /// physical device can point at a laptop's LAN IP without rebuilding). Fully
@@ -67,27 +67,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 12),
           Card(
             child: ListTile(
-              leading: Icon(Icons.palette_rounded, color: cs.primary),
-              title: Text(
-                l.translate('change_theme'),
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              trailing: const Icon(Icons.chevron_right_rounded),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ThemeSelectionScreen()),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Card(
-            child: ListTile(
               leading: Icon(Icons.sports_esports_rounded, color: cs.secondary),
               title: Text(
                 l.translate('demo_games'),
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              subtitle: Text(l.translate('demo_games_sub')),
               trailing: const Icon(Icons.chevron_right_rounded),
               onTap: () => Navigator.push(
                 context,
@@ -129,11 +113,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: (_ok! ? Colors.green : cs.error).withValues(alpha: 0.12),
+                color: (_ok! ? AppColors.mutedGreen : cs.error).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: _ok! ? Colors.green : cs.error),
+                border: Border.all(color: _ok! ? AppColors.mutedGreen : cs.error),
               ),
-              child: Text(_status!),
+              child: Row(
+                children: [
+                  Icon(
+                    _ok! ? Icons.check_circle_rounded : Icons.refresh_rounded,
+                    size: 18,
+                    color: _ok! ? AppColors.mutedGreen : cs.error,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(_status!)),
+                ],
+              ),
             ),
           ],
           const SizedBox(height: 26),

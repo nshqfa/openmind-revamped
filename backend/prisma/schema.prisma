@@ -19,19 +19,76 @@ model Student {
   grade               Int
   language            String    @default("en")
   color               String    @default("#58CC02")
-  interest            String?
+  interest            String? // elementary game archetype (primary stage)
+  learningContext     String? // middle-school context lens — legacy, fallback only
+  interests           String[]  @default([]) // onboarding interests (1-2, both stages) — primary AI-flavor signal
   dailyGoal           Int       @default(3)
   xp                  Int       @default(0)
   streakCount         Int       @default(0)
   streakLastPlayedAt  DateTime?
   tokenHash           String    @unique
+  // Client-generated, persisted per device install — the idempotency key for
+  // POST /students. Nullable: older rows (and any caller that doesn't send
+  // one) never populate it, and Postgres unique indexes allow any number of
+  // NULLs. A retry with a matching id reissues a token for the SAME row
+  // instead of creating a duplicate account (see routes/students.ts).
+  installationId      String?   @unique
   createdAt           DateTime  @default(now())
   games               Game[]
   xpEvents            XpEvent[]
   streakEvents        StreakEvent[]
   playSessions        PlaySession[]
+<<<<<<< HEAD
  // pathProgress        StudentPathProgress[]
   placementTests      PlacementTestSession[]
+=======
+  tutorMessages       TutorMessage[]
+  learnProgress       LearnProgress[]
+  learnEvidence       LearnEvidence[]
+}
+
+// Middle-school learning progress (grades 7-9) — a separate domain from
+// Game/PlaySession so game history and learning journeys never mix.
+model LearnProgress {
+  id           String   @id @default(cuid())
+  studentId    String
+  student      Student  @relation(fields: [studentId], references: [id])
+  pathId       String
+  experienceId String
+  completedAt  DateTime @default(now())
+
+  @@unique([studentId, pathId, experienceId])
+  @@index([studentId, completedAt])
+}
+
+// One learner submission — the append-only evidence log behind per-skill
+// readiness and error-pattern diagnostics. `id` is client-generated (not a
+// cuid) so the log is idempotent across the local cap, batch upsert, and sync.
+// A separate domain from LearnProgress: evidence never overwrites completion.
+model LearnEvidence {
+  id             String   @id
+  studentId      String
+  student        Student  @relation(fields: [studentId], references: [id])
+  skillId        String
+  representation String
+  context        String?
+  source         String // learn_step | checkpoint | tutor_block | tool_verify
+  kind           String // exploration | prediction | construction | transfer | recall | explanation
+  outcome        String // correct | partially_correct | incorrect | explored
+  verification   String // server_verified | client_reported
+  attempt        Int      @default(1)
+  hints          Int      @default(0)
+  recovered      Boolean  @default(false)
+  errorPattern   String?
+  toolId         String?
+  pathId         String?
+  experienceId   String?
+  stepIndex      Int?
+  ms             Int?
+  createdAt      DateTime @default(now())
+
+  @@index([studentId, skillId, createdAt])
+>>>>>>> teammate/main
 }
 
 model Game {
@@ -70,6 +127,20 @@ model PlaySession {
   createdAt DateTime @default(now())
 
   @@index([studentId, createdAt])
+}
+
+model TutorMessage {
+  id             String   @id @default(cuid())
+  studentId      String
+  student        Student  @relation(fields: [studentId], references: [id])
+  conversationId String
+  role           String // 'student' | 'tutor'
+  content        String
+  responseType   String? // tutor turns: structured responseType
+  context        Json? // learning context attached to the turn
+  createdAt      DateTime @default(now())
+
+  @@index([studentId, conversationId, createdAt])
 }
 
 model XpEvent {

@@ -53,6 +53,28 @@ What is working in the M5b build:
 - The composer can generate a new game through the backend and launch it in the
   player.
 - Web saves use IndexedDB; native saves use Drift/SQLite.
+- Returning students pass through a one-tap session-restore check
+  (`WelcomeBackScreen`) that verifies the saved device token against
+  `GET /students/me` before entering the app, instead of silently trusting a
+  possibly-stale token; a failed check clears only the dead credentials and
+  falls back to onboarding, never touching local progress.
+- The tutor's "Ask" surface is branded **Ask Hudhud**: a shared contextual
+  bottom sheet (`openAskHudhud`) that any stuck-learner affordance — inside a
+  lesson step, on a path's station list — can open, seeded with wherever the
+  learner actually is. Always the same `TutorChat`, never a second chat
+  system.
+- The middle-school learn platform now spans two subjects (Grade 7 math +
+  social studies) and six interactive tool types — the original
+  `number_line`/`order_sequence`/`sort_buckets`/`match_pairs` plus new
+  `balance_scale` (adjust-and-observe linear equations) and `timeline`
+  (chronological ordering) — all graded through one descriptor-driven path
+  shared by lesson widgets and Ask Hudhud blocks alike.
+- A per-skill readiness/evidence system now sits underneath both surfaces: an
+  append-only evidence log (local-first on the client, synced to the backend)
+  drives readiness-based checkpoints between skill clusters and diagnoses
+  wrong answers into specific error patterns, so both a support action and
+  Hudhud's hints can target the actual misconception instead of a generic
+  retry.
 - `flutter_module/` remains as the engine/reference Flutter app, while
   `edumind-ui/` is the polished UI shell being carried forward.
 
@@ -148,10 +170,13 @@ For a release-style web build:
 ```bash
 cd edumind-ui
 flutter pub get
-flutter build web
 $env:PORT="53211"; node tool/serve.mjs   # Windows PowerShell
 # or: set PORT=53211 && node tool/serve.mjs   # Windows cmd
-# or: PORT=53211 node tool/serve.mjs          # macOS/Linux
+# or: PORT=53211 node tool/serve
+
+
+
+.mjs          # macOS/Linux
 ```
 
 Without API keys the backend intentionally runs in mock LLM mode, so demo games
@@ -174,7 +199,8 @@ npm run build          # builds the shared lib + the three shells
 npm run preview        # → http://localhost:8765
 ```
 
-Open the harness, click a demo spec (Water Cycle quest / World Capitals shootout
+Open the harness, click a demo flutter build web
+spec (Water Cycle quest / World Capitals shootout
 / Plant Cell draw-board / Arabic quest), and play end to end: tutorial level,
 teach cards, questions with two-stage hints, explanations on right *and* wrong
 answers, summary screen. The harness also simulates progressive start (boot with
@@ -203,7 +229,7 @@ live:
 | --- | --- |
 | `ANTHROPIC_API_KEY` | live generation — `claude-haiku-4-5` default, `claude-sonnet-4-6` escalation |
 | `OPENAI_API_KEY` | content moderation (omni-moderation-latest); skipped with a warning if unset |
-| `DATABASE_URL` / `DIRECT_URL` | Postgres 16 (Neon: pooled + direct URLs; local: `docker compose up -d`) then `npm run prisma:migrate` |
+| `DATABASE_URL` / `DIRECT_URL` | Postgres 16 (Neon: pooled + direct URLs; local: `docker compose up -d`) then `npm run prisma:migrate` (fresh DB) — see [`backend/prisma/MIGRATIONS.md`](backend/prisma/MIGRATIONS.md) before running against an existing/production database |
 | `IMAGE_PROVIDER_API_KEY` + `IMAGE_PROVIDER_URL` | Tier-2 AI thumbnails (Flux Schnell); otherwise programmatic SVG thumbnails |
 
 - **API docs:** Swagger UI at `http://localhost:8080/api/docs` (OpenAPI 3.1
@@ -212,8 +238,52 @@ live:
   pipeline metrics (per-stage latency, escalation rate, cache hit rates,
   estimated cost per game).
 - **Auth:** `POST /api/v1/students` returns `{ studentId, token }`; everything
-  else takes `Authorization: Bearer <token>`. Nickname-only accounts.
+  else takes `Authorization: Bearer <token>`. Nickname-only accounts — there is
+  no password or email, so a client re-verifies a saved token with
+  `GET /students/me` rather than doing a real login (see
+  [Interactive tools & the readiness system](#interactive-tools--the-readiness-system)
+  below for how the Flutter client uses this).
+- **Tools & evidence:** `POST /api/v1/tools/:toolId/verify` grades an
+  interactive-tool submission server-side (rate-limited per student per
+  minute via `MAX_TOOL_VERIFY_PER_MINUTE`, default 120) and optionally records
+  a per-skill evidence row; `GET`/`POST /api/v1/learn/evidence` sync that
+  append-only evidence log.
 - Seed a demo student: `npm run seed` (prints a usable token).
+
+---
+
+## Interactive tools & the readiness system
+
+Six descriptor-driven manipulatives — `number_line`, `order_sequence`,
+`sort_buckets`, `match_pairs`, and the newer `balance_scale` (learner adjusts
+an unknown against a live balance beam — Grade 7's "an equation stays equal"
+concept as a consequence, not a checked placement) and `timeline` (order 3–8
+events chronologically; shares `order_sequence`'s permutation grading). Each
+tool is one `ToolDescriptor` (`backend/src/tutor/tools/`) declaring its data
+shape, `validate`, `verifyResult`, and an optional `diagnoseError` — the same
+descriptor renders as a lesson-catalog widget
+(`edumind-ui/lib/features/learn/widgets/`) *and* an Ask Hudhud tutor block
+(`.../features/tutor/blocks/`), backed by shared core logic in
+`edumind-ui/lib/shared/interactive_tools/`, so both surfaces share one
+grading truth instead of two. Lesson-widget submissions can now also be
+verified server-side via `POST /api/v1/tools/:toolId/verify` (previously
+100% client-graded) — documented as a weaker trust model than the tutor path
+in `backend/src/routes/tools.ts`, since the client supplies both the puzzle
+instance and the answer.
+
+Underneath both surfaces, an append-only per-skill evidence log
+(`LearnEvidence` in Postgres, `learn_evidence_store.dart` local-first on the
+client) feeds a pure readiness function (`readiness_logic.dart` /
+`backend/src/learning/evidence.ts`, kept in sync) scored per skill ×
+representation × context. A non-correct, server-verified attempt is
+diagnosed into one of six error patterns (concept misunderstanding,
+representation confusion, wrong unit, calculation slip, procedural error,
+transfer difficulty), each mapped to a specific support action
+(`backend/src/learning/support.ts` / `support_actions.dart`). `checkpoint_logic.dart`
+uses current readiness to assemble a drill/reuse/transfer checkpoint once a
+path crosses a cluster of skills, and the tutor's `TutorContext` now carries
+`skills`/`readiness` so Hudhud's hints target the weakest prerequisite and
+respond to the diagnosed pattern instead of a generic retry.
 
 ---
 
@@ -230,7 +300,10 @@ Onboarding (Hudhud-guided: nickname, grade 1-6, language, profile preferences,
 theme) -> dashboard/home path (XP, streaks, saved games, Demo Games) -> composer
 (subject, free-text topic, game type, theme, length, difficulty) -> player. The
 app can launch bundled demos without the backend, or generate through the
-backend and then save the completed game locally for offline replay.
+backend and then save the completed game locally for offline replay. Returning
+students with a saved device token see a one-tap `WelcomeBackScreen` session
+check first; anywhere a learner gets stuck, **Ask Hudhud** opens the same
+contextual tutor sheet, seeded with the current step.
 
 `flutter_module/` is still useful for engine parity checks and lower-level
 player work, but `edumind-ui/` is the current learner-facing app.
@@ -282,7 +355,103 @@ implemented twice) and both wear the student's favorite color.
 
 ---
 
-## Tests
+## Testing the Live App
+
+### Quick visual & functional smoke test
+
+The primary app (Grade 7 math + tutor + personalization) is live on web and ready to test:
+
+**URL:** `https://friendly-meme-694vrq6p949jfr9xw-8099.app.github.dev/`  
+**Port:** 8099 (public via GitHub Codespaces)  
+**Commit:** `de75b35` (all visual refresh phases merged)
+
+#### Full End-to-End Flow (5–10 minutes)
+
+1. **Onboarding** — land on the Arabic-first entry screen
+   - Fill name: `أحمد` (or any name)
+   - Select grade: **7** (إعدادي) for the full math experience
+   - Proceed through language, interests, style preferences
+   - App saves profile locally
+
+2. **Start Screen** (Home / الصفحة الرئيسية)
+   - Shows «أهلًا بك» welcome card
+   - Context lens chip (choose your learning perspective: life contexts like تقنية, بيئة, إلخ)
+   - Ready to launch an experience
+
+3. **Journey Screen** (اختر مسارك)
+   - 8 curriculum paths now visible (مفاتيح المدينة, سرّ الرقم المفقود, مدينة لا تنهار, …)
+   - Each has progress ring + ready/soon status
+   - Warm ivory background, Cairo font, navy/orange accents
+
+4. **Path Detail** (مسار التعلم)
+   - Select any path → shows trail/station map
+   - Progress bar: «X من Y جاهزة»
+   - Stations: completed ✓, current play, locked 🔒, coming soon ⋯
+
+5. **Interactive Experience** (تجربة تفاعلية)
+   - Full 6-step lesson: scene → explore → choice → challenge → apply → **check** (تحقق من الفهم)
+   - **Scene**: narrative setup
+   - **Explore**: draggable widget (triangle area)
+   - **Choice**: select correct answer (muted green on success, muted red on error)
+   - **Challenge**: apply the concept (24 m²)
+   - **Apply**: real-world scenario (24 plants)
+   - **Check** ✨ *NEW*: 2–3 quick verification questions, shows score, offers tutor if weak
+   - Proceed button gates on step readiness, never blocks on score
+
+6. **Completion** — small celebration
+   - Progress saved locally
+   - Return to path detail to see updated progress
+
+7. **Tutor** (اسأل أوبن مايند) — in-app help
+   - Full conversation interface (navy bubble for student, warm for tutor)
+   - Interactive math blocks (order sequences, match pairs, etc.) with muted green/red feedback
+   - Offline: shows honest "offline" message (backend not required to test UI)
+
+8. **Me** (ملفي الشخصي) — learner profile
+   - Shows name, grade, progress stats
+   - Language toggle (عربي / English)
+   - Clean, light UI with no purple anywhere
+
+9. **Grade 8+** (honest unavailable state)
+   - Switch profile to grade 8
+   - Reload app → shows **قيد الإعداد** (Coming Soon)
+   - Hudhud mascot, no fake content, honest copy
+
+#### Visual & UX Checklist
+
+✅ **Color system** — four separate palettes → one warm system  
+   - No purple (#6A1B9A) anywhere  
+   - Ivory background (#FDFBF6) throughout  
+   - Navy/ink primary (#14395C)  
+   - Orange accents (#E8872E) for CTAs  
+   - Soft blue selection surfaces (#E9F1F8)  
+   - Muted green (#3E7C59) for success (never bright neon)  
+   - Muted red (#9E4B47) for error  
+
+✅ **Typography** — real Cairo font now rendering  
+   - Arabic glyphs distinctive vs. old Roboto fallback  
+   - Bilingual support (Arabic-first RTL)  
+
+✅ **Components**  
+   - Nav indicator: soft blue (not purple pill)  
+   - Lesson option feedback: muted colors  
+   - Chat bubbles: navy student, calm tutor, muted-red error  
+   - Buttons: consistent orange CTAs  
+
+✅ **Learning logic** (unchanged, all green)  
+   - 8 curriculum paths canonical for Grade 7  
+   - Check step gates on all-answered (never all-correct)  
+   - Honest grade 8/9 state (no fake content)  
+   - Progress migration from old path IDs working  
+
+✅ **Onboarding** — warm baseline aesthetic  
+   - ArchHalo ornament frame  
+   - Calm mascot moments  
+   - Consistent ivory/navy/orange tokens  
+
+---
+
+## Automated Test Suite
 
 ```bash
 npm test               # shared schema tests + shell static validators + backend API tests
@@ -291,6 +460,10 @@ npm run test:e2e       # Playwright behavioral suite (boots every shell, plays s
 cd edumind-ui && flutter test && flutter analyze && flutter build web
 cd ../flutter_module && flutter test && flutter analyze && flutter build web
 ```
+
+Result from last main merge: **✅ 58 Flutter tests pass** (all 6 phases verified)  
+Result from code analysis: **✅ No issues found** (analyze clean)  
+Result from web build: **✅ Cairo bundled, app boots** (font verified rendering)
 
 ---
 
@@ -316,6 +489,31 @@ parental-consent flow, and a retention policy).
 
 ---
 
+## Visual System Overhaul (Latest)
+
+The app had **four disconnected color palettes** and the Arabic Cairo font was never actually loading (commented out in pubspec, app rendered fallback Roboto). Commit `de75b35` merges a complete visual refresh:
+
+| What was | What is now |
+|---|---|
+| Purple seed (#6A1B9A) everywhere | Warm olive/ivory (#FDFBF6) + navy ink (#14395C) |
+| Silent Roboto fallback | Real Cairo Arabic variable font bundled offline |
+| M3-purple ChatBubble + bright-neon feedback | Navy student bubble + muted green/red feedback |
+| Theme picker (broken, didn't persist) | Single warm theme system; personalization via accent color only |
+| 4 duplicate palettes (Palette, MiddlePalette, OnbColors, hardcoded hex) | One `AppColors` token set + one `AppRadii` scale |
+| Pastel gradient home (cyan→pink→green) | Warm gradient (ivory→softBlue→cream) |
+| Dead stat widgets + orphaned login screen | Pruned; only `EduCard` kept for dark game chrome |
+
+**Five phased implementation** (all merged to main):
+- **A** (Foundation): token file, real Cairo, unified theme, kill purple rail
+- **C1** (Chrome): tutor bubbles, chat, blocks onto warm tokens
+- **C2** (Learn): lesson feedback muted (green/red success/error)
+- **C4** (Primary): home gradient, about feature colors, prune dead code
+- **C5** (Minimal): game-studio documented as intentionally dark, no changes needed
+
+**Result**: onboarding → middle school → tutor → home → all on one warm system. No purple, no neon, consistent RTL typography.
+
+---
+
 ## Repo layout
 
 ```
@@ -323,7 +521,8 @@ shared/           GameSpec contract: Zod schemas, validators, assembly, JSON sch
 samples/          golden demo specs (EN ×3 + AR) — demos, tests and mock mode all eat the same files
 shells/           the product: EduCore/GameFeel/Mascot libs, 3 games, build, preview harness, CI tests
 backend/          Fastify 5 API: pipeline, validators, fact-check, storage, OpenAPI docs
-edumind-ui/       primary learner UI: onboarding, bilingual home/settings, demos, composer, player, local saves
+edumind-ui/       primary learner UI: onboarding, session-restore, bilingual home/settings/composer/player/tutor
+                  (Ask Hudhud), interactive tools + readiness/evidence system, warm visual system
 flutter_module/   reference engine app: composer, player, local library, shell parity checks
 scripts/          Kenney CC0 asset fetchers (optional enhancement — see scripts/KENNEY_README.md)
 docs/API.md       complete REST API reference for integrating OpenMind into another app
