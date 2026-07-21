@@ -43,6 +43,9 @@ model Student {
   tutorMessages       TutorMessage[]
   learnProgress       LearnProgress[]
   learnEvidence       LearnEvidence[]
+    learnNodeProgress LearnNodeProgress[]
+  learnAttempts     LearnAttempt[]
+  learnCheckpointSubmissions LearnCheckpointSubmission[]
 }
 
 // Middle-school learning progress (grades 7-9) — a separate domain from
@@ -204,16 +207,32 @@ model LearningPath {
 }
 
 model PathNode {
-  id              String       @id @default(cuid())
+  id              String   @id @default(cuid())
   title           String
-  subject         String // free-text subject label on this node
+  titleAr         String?
+  subject         String
   topic           String
   orderIndex      Int
   xpReward        Int
-  depth           Int          @default(0) // spiral depth: 0=basic, 1=deepen, 2=mastery
+  depth           Int      @default(0)
   learningPathId  String
   learningPath    LearningPath @relation(fields: [learningPathId], references: [id])
-  createdAt       DateTime     @default(now())
+
+  // ── NEW: Unshakable City fields ──
+  conceptKey      String?   // e.g. "parallel_lines", "angles", "parallelogram"
+  cityMission     String?   // e.g. "streets_no_collision", "smart_intersection"
+  nodeStatus      String   @default("soon")  // "available" | "in_progress" | "completed" | "soon"
+  sceneJson       Json?     // Opening real-world scenario {text, textAr, image}
+  discoveryJson   Json?     // Interactive discovery instructions
+  explanationJson Json?     // Short visual explanation {sentence, sentenceAr, diagramRef}
+
+  // Relations
+  stages          PathNodeStage[]
+  activities      PathNodeActivity[]
+  checkpoints     PathNodeCheckpoint[]
+  studentProgress LearnNodeProgress[]
+
+  createdAt       DateTime @default(now())
 
   @@index([learningPathId, orderIndex])
 }
@@ -254,4 +273,123 @@ model PlacementTestSession {
   completedAt       DateTime?
 
   @@index([studentId, learningPathId])
+}
+// ─── Unshakable City: PathNode Learning Engine ────────────────────────────────
+
+model PathNodeStage {
+  id          String   @id @default(cuid())
+  pathNodeId  String
+  pathNode    PathNode @relation(fields: [pathNodeId], references: [id])
+  stageType   String   // "scene" | "discovery" | "explanation" | "training" | "application" | "verification"
+  orderIndex  Int      // 0-5
+  title       String
+  titleAr     String?
+  contentJson Json?    // Stage-specific content (instructions, media refs, widget config)
+  createdAt   DateTime @default(now())
+
+  @@unique([pathNodeId, stageType])
+  @@index([pathNodeId, orderIndex])
+}
+
+model PathNodeActivity {
+  id                String   @id @default(cuid())
+  pathNodeId        String
+  pathNode          PathNode @relation(fields: [pathNodeId], references: [id])
+  stageId           String?
+  orderIndex        Int
+  activityType      String   // "angle_explorer" | "shape_compare" | "bridge_builder" | "area_tiles" | "choice" | "numeric_input" | "drag_drop"
+  prompt            String
+  promptAr          String?
+  dataJson          Json     // The activity's fixed data (angles, shapes, coordinates)
+  correctAnswerJson Json     // Server ground-truth — NEVER sent to client
+  correctionRulesJson Json?  // Fixed correction rules: tolerance, partial-credit, error patterns
+  hintsJson         Json?    // Array of 3 hints [{level, text, textAr}]
+  skillId           String?
+  xpReward          Int      @default(10)
+  createdAt         DateTime @default(now())
+
+  attempts          LearnAttempt[]
+
+  @@index([pathNodeId, orderIndex])
+}
+
+model PathNodeCheckpoint {
+  id              String   @id @default(cuid())
+  pathNodeId      String
+  pathNode        PathNode @relation(fields: [pathNodeId], references: [id])
+  orderIndex      Int      @default(0)
+  title           String
+  titleAr         String?
+  questionsJson   Json     // [{id, type, prompt, promptAr, correctAnswer, errorPatterns}]
+  passThreshold   Float    @default(0.7)
+  xpReward        Int      @default(50)
+  createdAt       DateTime @default(now())
+
+  submissions     LearnCheckpointSubmission[]
+
+  @@index([pathNodeId])
+}
+
+model LearnNodeProgress {
+  id                String   @id @default(cuid())
+  studentId         String
+  student           Student  @relation(fields: [studentId], references: [id])
+  pathNodeId        String
+  pathNode          PathNode @relation(fields: [pathNodeId], references: [id])
+  learningPathId    String
+
+  currentStageIndex Int      @default(0)
+  status            String   @default("locked")  // "locked" | "available" | "in_progress" | "completed"
+  checkpointScore   Float?
+  checkpointPassed  Boolean  @default(false)
+  completedAt       DateTime?
+  attemptsCount     Int      @default(0)
+  hintsUsed         Int      @default(0)
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([studentId, pathNodeId])
+  @@index([studentId, learningPathId, status])
+}
+
+model LearnAttempt {
+  id              String   @id @default(cuid())
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [id])
+  activityId      String
+  activity        PathNodeActivity @relation(fields: [activityId], references: [id])
+  pathNodeId      String
+
+  attemptNumber   Int
+  answerJson      Json
+  outcome         String   // "correct" | "partially_correct" | "incorrect"
+  errorPattern    String?
+  hintsUsedBefore Int      @default(0)
+  timeMs          Int?
+  recovered       Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+
+  @@index([studentId, activityId, attemptNumber])
+  @@index([studentId, pathNodeId])
+}
+
+model LearnCheckpointSubmission {
+  id              String   @id @default(cuid())
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [id])
+  checkpointId    String
+  checkpoint      PathNodeCheckpoint @relation(fields: [checkpointId], references: [id])
+  pathNodeId      String
+
+  answersJson     Json     // [{questionId, answer, correct}]
+  score           Float
+  passed          Boolean
+  attemptNumber   Int
+
+  createdAt       DateTime @default(now())
+
+  @@index([studentId, checkpointId])
+  @@index([studentId, pathNodeId])
 }

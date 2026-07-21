@@ -733,3 +733,130 @@ export const QUESTION_DIFFICULTY_LABELS: Record<string, { en: string; ar: string
   advanced: { en: 'Advanced', ar: 'متقدم', depth: 3 },
   mastery: { en: 'Mastery', ar: 'إتقان', depth: 4 },
 };
+
+//the learning nodes 
+// ─── PathNode Learning Engine ────────────────────────────────────────────────
+// ─── Unshakable City: PathNode Learning Engine schemas ───────────────────────
+
+export const NODE_PROGRESS_STATUSES = [
+  'locked', 'available', 'in_progress', 'completed',
+] as const;
+
+export const ATTEMPT_OUTCOMES = [
+  'correct', 'partially_correct', 'incorrect',
+] as const;
+
+export const CITY_STAGE_TYPES = [
+  'scene', 'discovery', 'explanation', 'training', 'application', 'verification',
+] as const;
+
+// --- Request: Save stage progress (without claiming completion) ---
+export const PutStageProgressBody = z.object({
+  pathNodeId: z.string().min(1).max(80),
+  stageIndex: z.number().int().min(0).max(5),
+});
+
+export const PutStageProgressResponse = z.object({
+  saved: z.literal(true),
+  pathNodeId: z.string(),
+  currentStageIndex: z.number(),
+  status: z.enum(NODE_PROGRESS_STATUSES),
+});
+
+// --- Request: Submit an activity attempt ---
+export const PostActivityAttemptBody = z.object({
+  answer: z.record(z.string(), z.unknown()),
+  timeMs: z.number().int().min(0).optional(),
+});
+
+export const PostActivityAttemptResponse = z.object({
+  attemptId: z.string(),
+  attemptNumber: z.number(),
+  outcome: z.enum(ATTEMPT_OUTCOMES),
+  errorPattern: z.string().nullable(),
+  hint: z.object({
+    level: z.number().int().min(1).max(3),
+    text: z.string(),
+    textAr: z.string().optional(),
+  }).nullable(),
+  correct: z.boolean(),
+  xpAwarded: z.number(),
+});
+
+// --- Request: Submit checkpoint ---
+export const PostCheckpointSubmitBody = z.object({
+  answers: z.array(z.object({
+    questionId: z.string().min(1),
+    answer: z.record(z.string(), z.unknown()),
+  })).min(1).max(5),
+});
+
+export const PostCheckpointSubmitResponse = z.object({
+  submissionId: z.string(),
+  score: z.number(),
+  passed: z.boolean(),
+  correctCount: z.number(),
+  totalCount: z.number(),
+  xpAwarded: z.number(),
+  nextNodeId: z.string().nullable(),
+  nextNodeTitle: z.string().nullable(),
+});
+
+// --- Response: Node progress view ---
+export const LearnNodeProgressView = z.object({
+  pathNodeId: z.string(),
+  title: z.string(),
+  titleAr: z.string().nullable(),
+  orderIndex: z.number(),
+  status: z.enum(NODE_PROGRESS_STATUSES),
+  currentStageIndex: z.number(),
+  checkpointScore: z.number().nullable(),
+  checkpointPassed: z.boolean(),
+  completedAt: z.string().nullable(),
+  attemptsCount: z.number(),
+  hintsUsed: z.number(),
+});
+
+export const GetLearnPathProgressResponse = z.object({
+  pathId: z.string(),
+  pathName: z.string(),
+  nodes: z.array(LearnNodeProgressView),
+  completionPercent: z.number(),
+  currentNodeId: z.string().nullable(),
+  totalXpEarned: z.number(),
+});
+
+// --- Response: Node stages ---
+export const PathNodeStageView = z.object({
+  id: z.string(),
+  stageType: z.enum(CITY_STAGE_TYPES),
+  orderIndex: z.number(),
+  title: z.string(),
+  titleAr: z.string().nullable(),
+  contentJson: z.record(z.string(), z.unknown()).nullable(),
+});
+
+export const GetNodeStagesResponse = z.object({
+  pathNodeId: z.string(),
+  title: z.string(),
+  titleAr: z.string().nullable(),
+  currentStageIndex: z.number(),
+  stages: z.array(PathNodeStageView),
+});
+
+// --- Response: Node activities (correct answers STRIPPED) ---
+export const PathNodeActivityView = z.object({
+  id: z.string(),
+  activityType: z.string(),
+  prompt: z.string(),
+  promptAr: z.string().nullable(),
+  dataJson: z.record(z.string(), z.unknown()),
+  orderIndex: z.number(),
+  xpReward: z.number(),
+  attemptCount: z.number(),
+});
+
+export const GetNodeActivitiesResponse = z.object({
+  pathNodeId: z.string(),
+  activities: z.array(PathNodeActivityView),
+});

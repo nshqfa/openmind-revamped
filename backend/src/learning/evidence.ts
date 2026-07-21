@@ -18,6 +18,9 @@ export const ERROR_PATTERNS = [
   'calculation_slip', // right method, arithmetic slipped
   'procedural_error', // right idea, a step of the procedure was skipped/reversed
   'transfer_difficulty', // knows it in one context, not yet in a new one
+  'confused_supplementary_complementary', // mixed up 180° and 90° relationships
+  'angle_sum_miscalculation',            // wrong sum for angles on a line / in a triangle
+  'confused_parallel_perpendicular',     // mixed up parallel and perpendicular properties
 ] as const;
 export type ErrorPattern = (typeof ERROR_PATTERNS)[number];
 

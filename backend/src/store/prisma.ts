@@ -21,6 +21,13 @@ import type {
   SubjectWithPaths,
   TutorMessageRow,
   XpEventRow,
+  LearnNodeProgressRow,
+  PathNodeStageRow,
+  PathNodeActivityRow,
+  LearnCheckpointSubmissionRow,
+  LearnAttemptRow,
+  PathNodeCheckpointRow,
+
 } from './types.js';
 
 // PrismaClient is loaded lazily so the backend can boot (memory mode) even if
@@ -356,8 +363,142 @@ export async function createPrismaStore(): Promise<Store> {
       if ('answers' in data && data.answers) data.answers = data.answers as object;
       return (await prisma.placementTestSession.update({ where: { id }, data })) as PlacementTestSessionRow;
     },
+      // ─── Unshakable City: PathNode learning engine ──────────────────────────
+
+  async getOrCreateNodeProgress(studentId: string, pathNodeId: string, learningPathId: string): Promise<LearnNodeProgressRow> {
+    const existing = await  prisma.learnNodeProgress.findUnique({
+      where: { studentId_pathNodeId: { studentId, pathNodeId } },
+    });
+    if (existing) return existing as unknown as LearnNodeProgressRow;
+
+    const created = await prisma.learnNodeProgress.create({
+      data: {
+        studentId,
+        pathNodeId,
+        learningPathId,
+        currentStageIndex: 0,
+        status: 'locked',
+        checkpointPassed: false,
+        attemptsCount: 0,
+        hintsUsed: 0,
+      },
+    });
+    return created as unknown as LearnNodeProgressRow;
+  },
+
+  async listNodeProgress(studentId: string, learningPathId: string): Promise<LearnNodeProgressRow[]> {
+    const rows = await  prisma.learnNodeProgress.findMany({
+      where: { studentId, learningPathId },
+    });
+    return rows as unknown as LearnNodeProgressRow[];
+  },
+
+  async updateNodeProgress(id: string, patch: Partial<Pick<LearnNodeProgressRow, 'currentStageIndex' | 'status' | 'checkpointScore' | 'checkpointPassed' | 'completedAt' | 'attemptsCount' | 'hintsUsed'>>): Promise<LearnNodeProgressRow> {
+    const updated = await  prisma.learnNodeProgress.update({
+      where: { id },
+      data: patch,
+    });
+    return updated as unknown as LearnNodeProgressRow;
+  },
+
+  async initializePathProgress(studentId: string, learningPathId: string, pathNodeIds: string[]): Promise<void> {
+    const existing = await  prisma.learnNodeProgress.findMany({
+      where: { studentId, learningPathId },
+      select: { pathNodeId: true },
+    });
+    
+       const existingIds = new Set(existing.map((e: { pathNodeId: string }) => e.pathNodeId));
+
+    for (let i = 0; i < pathNodeIds.length; i++) {
+      if (!existingIds.has(pathNodeIds[i])) {
+        await  prisma.learnNodeProgress.create({
+          data: {
+            studentId,
+            pathNodeId: pathNodeIds[i],
+            learningPathId,
+            currentStageIndex: 0,
+            status: i === 0 ? 'available' : 'locked',
+            checkpointPassed: false,
+            attemptsCount: 0,
+            hintsUsed: 0,
+          },
+        });
+      }
+    }
+  },
+
+  async listPathNodeStages(pathNodeId: string): Promise<PathNodeStageRow[]> {
+    const rows = await  prisma.pathNodeStage.findMany({
+      where: { pathNodeId },
+      orderBy: { orderIndex: 'asc' },
+    });
+    return rows as unknown as PathNodeStageRow[];
+  },
+
+  async listPathNodeActivities(pathNodeId: string): Promise<PathNodeActivityRow[]> {
+    const rows = await  prisma.pathNodeActivity.findMany({
+      where: { pathNodeId },
+      orderBy: { orderIndex: 'asc' },
+    });
+    return rows as unknown as PathNodeActivityRow[];
+  },
+
+  async getPathNodeActivity(activityId: string): Promise<PathNodeActivityRow | null> {
+    const row = await  prisma.pathNodeActivity.findUnique({
+      where: { id: activityId },
+    });
+    return (row as unknown as PathNodeActivityRow) ?? null;
+  },
+
+  async listPathNodeCheckpoints(pathNodeId: string): Promise<PathNodeCheckpointRow[]> {
+    const rows = await  prisma.pathNodeCheckpoint.findMany({
+      where: { pathNodeId },
+      orderBy: { orderIndex: 'asc' },
+    });
+    return rows as unknown as PathNodeCheckpointRow[];
+  },
+
+  async getPathNodeCheckpoint(checkpointId: string): Promise<PathNodeCheckpointRow | null> {
+    const row = await  prisma.pathNodeCheckpoint.findUnique({
+      where: { id: checkpointId },
+    });
+    return (row as unknown as PathNodeCheckpointRow) ?? null;
+  },
+
+  async createLearnAttempt(data: Omit<LearnAttemptRow, 'id' | 'createdAt'>): Promise<LearnAttemptRow> {
+    const created = await  prisma.learnAttempt.create({ data });
+    return created as unknown as LearnAttemptRow;
+  }
+,
+  async countLearnAttempts(studentId: string, activityId: string): Promise<number> {
+    return  prisma.learnAttempt.count({
+      where: { studentId, activityId },
+    });
+  },
+
+  async listLearnAttempts(studentId: string, pathNodeId: string): Promise<LearnAttemptRow[]> {
+    const rows = await  prisma.learnAttempt.findMany({
+      where: { studentId, pathNodeId },
+      orderBy: { createdAt: 'asc' },
+    });
+    return rows as unknown as LearnAttemptRow[];
+  },
+
+  async createCheckpointSubmission(data: Omit<LearnCheckpointSubmissionRow, 'id' | 'createdAt'>): Promise<LearnCheckpointSubmissionRow> {
+    const created = await  prisma.learnCheckpointSubmission.create({ data });
+    return created as unknown as LearnCheckpointSubmissionRow;
+  },
+
+  async countCheckpointSubmissions(studentId: string, checkpointId: string): Promise<number> {
+    return  prisma.learnCheckpointSubmission.count({
+      where: { studentId, checkpointId },
+    });
+  }
   };
   
+
+  
   return store;
+
 }
 

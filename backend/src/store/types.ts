@@ -216,6 +216,91 @@ export interface TutorMessageRow {
   createdAt: Date;
 }
 
+// ─── Unshakable City: PathNode engine rows ───────────────────────────────────
+
+export interface PathNodeStageRow {
+  id: string;
+  pathNodeId: string;
+  stageType: string;
+  orderIndex: number;
+  title: string;
+  titleAr: string | null;
+  contentJson: Record<string, unknown> | null;
+  createdAt: Date;
+}
+
+export interface PathNodeActivityRow {
+  id: string;
+  pathNodeId: string;
+  stageId: string | null;
+  orderIndex: number;
+  activityType: string;
+  prompt: string;
+  promptAr: string | null;
+  dataJson: Record<string, unknown>;
+  correctAnswerJson: Record<string, unknown>;
+  correctionRulesJson: Record<string, unknown> | null;
+  hintsJson: Array<{ level: number; text: string; textAr?: string }> | null;
+  skillId: string | null;
+  xpReward: number;
+  createdAt: Date;
+}
+
+export interface PathNodeCheckpointRow {
+  id: string;
+  pathNodeId: string;
+  orderIndex: number;
+  title: string;
+  titleAr: string | null;
+  questionsJson: Array<Record<string, unknown>>;
+  passThreshold: number;
+  xpReward: number;
+  createdAt: Date;
+}
+
+export interface LearnNodeProgressRow {
+  id: string;
+  studentId: string;
+  pathNodeId: string;
+  learningPathId: string;
+  currentStageIndex: number;
+  status: string; // locked | available | in_progress | completed
+  checkpointScore: number | null;
+  checkpointPassed: boolean;
+  completedAt: Date | null;
+  attemptsCount: number;
+  hintsUsed: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface LearnAttemptRow {
+  id: string;
+  studentId: string;
+  activityId: string;
+  pathNodeId: string;
+  attemptNumber: number;
+  answerJson: Record<string, unknown>;
+  outcome: string;
+  errorPattern: string | null;
+  hintsUsedBefore: number;
+  timeMs: number | null;
+  recovered: boolean;
+  createdAt: Date;
+}
+
+export interface LearnCheckpointSubmissionRow {
+  id: string;
+  studentId: string;
+  checkpointId: string;
+  pathNodeId: string;
+  answersJson: Array<Record<string, unknown>>;
+  score: number;
+  passed: boolean;
+  attemptNumber: number;
+  createdAt: Date;
+}
+
 export interface Store {
   kind: 'memory' | 'prisma';
   ping(): Promise<boolean>;
@@ -301,7 +386,37 @@ export interface Store {
   listPlacementTestsByStudent(studentId: string): Promise<PlacementTestSessionRow[]>;
   updatePlacementTest(id: string, patch: Partial<Omit<PlacementTestSessionRow, 'id' | 'studentId' | 'learningPathId' | 'startedAt'>>): Promise<PlacementTestSessionRow>;
 
+    // ─── Unshakable City: PathNode learning engine ──────────────────────────
+
+  // Node progress
+  getOrCreateNodeProgress(studentId: string, pathNodeId: string, learningPathId: string): Promise<LearnNodeProgressRow>;
+  listNodeProgress(studentId: string, learningPathId: string): Promise<LearnNodeProgressRow[]>;
+  updateNodeProgress(id: string, patch: Partial<Pick<LearnNodeProgressRow, 'currentStageIndex' | 'status' | 'checkpointScore' | 'checkpointPassed' | 'completedAt' | 'attemptsCount' | 'hintsUsed'>>): Promise<LearnNodeProgressRow>;
+  initializePathProgress(studentId: string, learningPathId: string, pathNodeIds: string[]): Promise<void>;
+
+  // Stages
+  listPathNodeStages(pathNodeId: string): Promise<PathNodeStageRow[]>;
+
+  // Activities
+  listPathNodeActivities(pathNodeId: string): Promise<PathNodeActivityRow[]>;
+  getPathNodeActivity(activityId: string): Promise<PathNodeActivityRow | null>;
+
+  // Checkpoints
+  listPathNodeCheckpoints(pathNodeId: string): Promise<PathNodeCheckpointRow[]>;
+  getPathNodeCheckpoint(checkpointId: string): Promise<PathNodeCheckpointRow | null>;
+
+  // Attempts
+  createLearnAttempt(data: Omit<LearnAttemptRow, 'id' | 'createdAt'>): Promise<LearnAttemptRow>;
+  countLearnAttempts(studentId: string, activityId: string): Promise<number>;
+  listLearnAttempts(studentId: string, pathNodeId: string): Promise<LearnAttemptRow[]>;
+
+  // Checkpoint submissions
+  createCheckpointSubmission(data: Omit<LearnCheckpointSubmissionRow, 'id' | 'createdAt'>): Promise<LearnCheckpointSubmissionRow>;
+  countCheckpointSubmissions(studentId: string, checkpointId: string): Promise<number>;
+
 }
+
+
 
 
 
