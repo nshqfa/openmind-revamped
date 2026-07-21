@@ -21,6 +21,9 @@ export const SUPPORT_BY_PATTERN: Record<ErrorPattern, SupportAction> = {
   calculation_slip: 'recheck',
   procedural_error: 'step_scaffold',
   transfer_difficulty: 'familiar_context_first',
+    confused_supplementary_complementary: 'revisit_explore',
+  angle_sum_miscalculation: 'recheck',
+  confused_parallel_perpendicular: 'revisit_explore',
 };
 
 export function supportFor(pattern: ErrorPattern): SupportAction {

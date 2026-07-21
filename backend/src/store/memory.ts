@@ -4,12 +4,18 @@ import { uniqueConstraintError } from './errors.js';
 import type {
   GameRow,
   GradeRow,
+  LearnAttemptRow,
+  LearnCheckpointSubmissionRow,
   LearnEvidenceInput,
   LearnEvidenceRow,
+  LearnNodeProgressRow,
   LearnProgressRow,
   LearningPathRow,
   LearningPathWithNodes,
+  PathNodeActivityRow,
+  PathNodeCheckpointRow,
   PathNodeRow,
+  PathNodeStageRow,
   PlaySessionRow,
   PlacementTestSessionRow,
   QuestionDifficulty,
@@ -465,6 +471,139 @@ export class MemoryStore implements Store {
     if (!t) throw new Error('placement test not found');
     Object.assign(t, patch);
     return t;
+  }
+
+  // ─── Unshakable City: PathNode learning engine ──────────────────────────────
+
+  private nodeProgress: LearnNodeProgressRow[] = [];
+  private pathNodeStages: PathNodeStageRow[] = [];
+  private pathNodeActivities: PathNodeActivityRow[] = [];
+  private pathNodeCheckpoints: PathNodeCheckpointRow[] = [];
+  private learnAttempts: LearnAttemptRow[] = [];
+  private checkpointSubmissions: LearnCheckpointSubmissionRow[] = [];
+
+  async getOrCreateNodeProgress(studentId: string, pathNodeId: string, learningPathId: string): Promise<LearnNodeProgressRow> {
+    const existing = this.nodeProgress.find(
+      (p) => p.studentId === studentId && p.pathNodeId === pathNodeId,
+    );
+    if (existing) return existing;
+    const row: LearnNodeProgressRow = {
+      id: randomUUID(),
+      studentId,
+      pathNodeId,
+      learningPathId,
+      currentStageIndex: 0,
+      status: 'locked',
+      checkpointScore: null,
+      checkpointPassed: false,
+      completedAt: null,
+      attemptsCount: 0,
+      hintsUsed: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.nodeProgress.push(row);
+    return row;
+  }
+
+  async listNodeProgress(studentId: string, learningPathId: string): Promise<LearnNodeProgressRow[]> {
+    return this.nodeProgress.filter(
+      (p) => p.studentId === studentId && p.learningPathId === learningPathId,
+    );
+  }
+
+  async updateNodeProgress(
+    id: string,
+    patch: Partial<Pick<LearnNodeProgressRow, 'currentStageIndex' | 'status' | 'checkpointScore' | 'checkpointPassed' | 'completedAt' | 'attemptsCount' | 'hintsUsed'>>,
+  ): Promise<LearnNodeProgressRow> {
+    const row = this.nodeProgress.find((p) => p.id === id);
+    if (!row) throw new Error('node progress not found');
+    Object.assign(row, patch, { updatedAt: new Date() });
+    return row;
+  }
+
+  async initializePathProgress(studentId: string, learningPathId: string, pathNodeIds: string[]): Promise<void> {
+    const existingIds = new Set(
+      this.nodeProgress
+        .filter((p) => p.studentId === studentId && p.learningPathId === learningPathId)
+        .map((p) => p.pathNodeId),
+    );
+    for (let i = 0; i < pathNodeIds.length; i++) {
+      const nodeId = pathNodeIds[i];
+      if (!existingIds.has(nodeId!)) {
+        this.nodeProgress.push({
+          id: randomUUID(),
+          studentId,
+          pathNodeId: nodeId!,
+          learningPathId,
+          currentStageIndex: 0,
+          status: i === 0 ? 'available' : 'locked',
+          checkpointScore: null,
+          checkpointPassed: false,
+          completedAt: null,
+          attemptsCount: 0,
+          hintsUsed: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+      }
+    }
+  }
+
+  async listPathNodeStages(pathNodeId: string): Promise<PathNodeStageRow[]> {
+    return this.pathNodeStages
+      .filter((s) => s.pathNodeId === pathNodeId)
+      .sort((a, b) => a.orderIndex - b.orderIndex);
+  }
+
+  async listPathNodeActivities(pathNodeId: string): Promise<PathNodeActivityRow[]> {
+    return this.pathNodeActivities
+      .filter((a) => a.pathNodeId === pathNodeId)
+      .sort((a, b) => a.orderIndex - b.orderIndex);
+  }
+
+  async getPathNodeActivity(activityId: string): Promise<PathNodeActivityRow | null> {
+    return this.pathNodeActivities.find((a) => a.id === activityId) ?? null;
+  }
+
+  async listPathNodeCheckpoints(pathNodeId: string): Promise<PathNodeCheckpointRow[]> {
+    return this.pathNodeCheckpoints
+      .filter((c) => c.pathNodeId === pathNodeId)
+      .sort((a, b) => a.orderIndex - b.orderIndex);
+  }
+
+  async getPathNodeCheckpoint(checkpointId: string): Promise<PathNodeCheckpointRow | null> {
+    return this.pathNodeCheckpoints.find((c) => c.id === checkpointId) ?? null;
+  }
+
+  async createLearnAttempt(data: Omit<LearnAttemptRow, 'id' | 'createdAt'>): Promise<LearnAttemptRow> {
+    const row: LearnAttemptRow = { ...data, id: randomUUID(), createdAt: new Date() };
+    this.learnAttempts.push(row);
+    return row;
+  }
+
+  async countLearnAttempts(studentId: string, activityId: string): Promise<number> {
+    return this.learnAttempts.filter(
+      (a) => a.studentId === studentId && a.activityId === activityId,
+    ).length;
+  }
+
+  async listLearnAttempts(studentId: string, pathNodeId: string): Promise<LearnAttemptRow[]> {
+    return this.learnAttempts
+      .filter((a) => a.studentId === studentId && a.pathNodeId === pathNodeId)
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  }
+
+  async createCheckpointSubmission(data: Omit<LearnCheckpointSubmissionRow, 'id' | 'createdAt'>): Promise<LearnCheckpointSubmissionRow> {
+    const row: LearnCheckpointSubmissionRow = { ...data, id: randomUUID(), createdAt: new Date() };
+    this.checkpointSubmissions.push(row);
+    return row;
+  }
+
+  async countCheckpointSubmissions(studentId: string, checkpointId: string): Promise<number> {
+    return this.checkpointSubmissions.filter(
+      (s) => s.studentId === studentId && s.checkpointId === checkpointId,
+    ).length;
   }
 
 }
