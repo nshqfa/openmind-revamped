@@ -466,7 +466,7 @@ export async function createPrismaStore(): Promise<Store> {
   },
 
   async createLearnAttempt(data: Omit<LearnAttemptRow, 'id' | 'createdAt'>): Promise<LearnAttemptRow> {
-   const created = await prisma.learnAttempt.create({ data });
+    const created = await prisma.learnAttempt.create({ data });
     return created as unknown as LearnAttemptRow;
   },
   async countLearnAttempts(studentId: string, activityId: string): Promise<number> {
