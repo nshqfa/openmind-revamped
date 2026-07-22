@@ -101,6 +101,13 @@ export interface PathNodeRow {
   xpReward: number;
   depth: number; // spiral depth: 0=basic, 1=deepen, 2=mastery
   learningPathId: string;
+  conceptKey?: string;
+  cityMission?: string;
+  nodeStatus?: string;  // "available" | "in_progress" | "completed" | "soon"
+  sceneJson?: Record<string, unknown> | null;
+  discoveryJson?: Record<string, unknown> | null;
+  explanationJson?: Record<string, unknown> | null;
+  titleAr?: string | null;
   createdAt: Date;
 }
 
@@ -405,6 +412,15 @@ export interface Store {
   listPathNodeCheckpoints(pathNodeId: string): Promise<PathNodeCheckpointRow[]>;
   getPathNodeCheckpoint(checkpointId: string): Promise<PathNodeCheckpointRow | null>;
 
+  // Stages (create)
+  createPathNodeStage(data: Omit<PathNodeStageRow, 'id' | 'createdAt'>): Promise<PathNodeStageRow>;
+
+  // Activities (create)
+  createPathNodeActivity(data: Omit<PathNodeActivityRow, 'id' | 'createdAt'>): Promise<PathNodeActivityRow>;
+
+  // Checkpoints (create)
+  createPathNodeCheckpoint(data: Omit<PathNodeCheckpointRow, 'id' | 'createdAt'>): Promise<PathNodeCheckpointRow>;
+
   // Attempts
   createLearnAttempt(data: Omit<LearnAttemptRow, 'id' | 'createdAt'>): Promise<LearnAttemptRow>;
   countLearnAttempts(studentId: string, activityId: string): Promise<number>;
@@ -415,8 +431,3 @@ export interface Store {
   countCheckpointSubmissions(studentId: string, checkpointId: string): Promise<number>;
 
 }
-
-
-
-
-

@@ -24,7 +24,7 @@ export interface CheckpointQuestion {
   type: string;
   prompt: string;
   promptAr?: string;
-  correctAnswer: unknown;
+  correctAnswer: Record<string, unknown>;
   errorPatterns?: Array<{ condition: string; label: string }>;
 }
 
@@ -69,7 +69,7 @@ export function gradeCheckpointQuestion(
 ): { correct: boolean; errorPattern: string | null } {
   const result = gradeActivity(
     studentAnswer,
-    question.correctAnswer as Record<string, unknown>,
+    question.correctAnswer,
     null,
     question.type,
   );

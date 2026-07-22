@@ -68,12 +68,16 @@ function pathNodeView(pn: PathNodeRow) {
   return {
     id: pn.id,
     title: pn.title,
+    titleAr: pn.titleAr,
     subject: pn.subject,
     topic: pn.topic,
     orderIndex: pn.orderIndex,
     xpReward: pn.xpReward,
     depth: pn.depth,
     learningPathId: pn.learningPathId,
+    conceptKey: pn.conceptKey,
+    cityMission: pn.cityMission,
+    nodeStatus: pn.nodeStatus,
     createdAt: pn.createdAt.toISOString(),
   };
 }

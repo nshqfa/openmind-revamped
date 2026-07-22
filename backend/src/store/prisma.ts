@@ -465,6 +465,21 @@ export async function createPrismaStore(): Promise<Store> {
     return (row as unknown as PathNodeCheckpointRow) ?? null;
   },
 
+  async createPathNodeStage(data: Omit<PathNodeStageRow, 'id' | 'createdAt'>) {
+    const row = await prisma.pathNodeStage.create({ data });
+    return row as unknown as PathNodeStageRow;
+  },
+
+  async createPathNodeActivity(data: Omit<PathNodeActivityRow, 'id' | 'createdAt'>) {
+    const row = await prisma.pathNodeActivity.create({ data });
+    return row as unknown as PathNodeActivityRow;
+  },
+
+  async createPathNodeCheckpoint(data: Omit<PathNodeCheckpointRow, 'id' | 'createdAt'>) {
+    const row = await prisma.pathNodeCheckpoint.create({ data });
+    return row as unknown as PathNodeCheckpointRow;
+  },
+
   async createLearnAttempt(data: Omit<LearnAttemptRow, 'id' | 'createdAt'>): Promise<LearnAttemptRow> {
     const created = await prisma.learnAttempt.create({ data });
     return created as unknown as LearnAttemptRow;
@@ -500,4 +515,3 @@ export async function createPrismaStore(): Promise<Store> {
   return store;
 
 }
-

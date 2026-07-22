@@ -393,12 +393,17 @@ export const PatchLearningPathBody = z.object({
 export const PathNodeView = z.object({
   id: z.string(),
   title: z.string(),
+  titleAr: z.string().nullable(),
   subject: z.string(),
   topic: z.string(),
   orderIndex: z.number(),
   xpReward: z.number(),
   depth: z.number(),
   learningPathId: z.string(),
+  // Unshakable City fields
+  conceptKey: z.string().nullable(),
+  cityMission: z.string().nullable(),
+  nodeStatus: z.string(),
   createdAt: z.string(),
 });
 
@@ -407,13 +412,22 @@ export const LearningPathWithNodesView = LearningPathView.extend({
 });
 
 export const CreatePathNodeBody = z.object({
-  title: z.string().min(1).max(120),
+ title: z.string().min(1).max(120),
   subject: z.string().min(1).max(80),
   topic: z.string().min(1).max(200),
   orderIndex: z.number().int().min(0),
   xpReward: z.number().int().min(0),
   depth: z.number().int().min(0).max(4).default(0),
   learningPathId: z.string().min(1),
+  // Unshakable City fields (optional — backward compat)
+  titleAr: z.string().max(200).nullable().optional(),
+  conceptKey: z.string().max(80).nullable().optional(),
+  cityMission: z.string().max(200).nullable().optional(),
+  nodeStatus: z.string().max(30).optional(),
+  sceneJson: z.record(z.string(), z.unknown()).nullable().optional(),
+  discoveryJson: z.record(z.string(), z.unknown()).nullable().optional(),
+  explanationJson: z.record(z.string(), z.unknown()).nullable().optional(),
+
 });
 
 export const PatchPathNodeBody = z.object({

@@ -5,6 +5,7 @@ import '../../core/middle_palette.dart';
 import '../../core/palette.dart';
 import '../../core/session.dart';
 import '../../widgets/mascot.dart';
+import '../city/city_map_screen.dart';
 import 'grade_soon_view.dart';
 import 'journey_logic.dart';
 import 'learn_catalog.dart';
@@ -134,6 +135,11 @@ class _JourneyScreenState extends State<JourneyScreen> {
                         _hudhudMoment(l),
                       ],
                       const SizedBox(height: 18),
+                      // City card (prominent entry for Grade 7+)
+                      if (Session.instance.grade >= 7) ...[
+                        _cityPathRow(l),
+                        const SizedBox(height: 16),
+                      ],
                       for (final catalog in catalogs) ...[
                         Text(
                           '${catalog.subject} — '
@@ -242,6 +248,82 @@ class _JourneyScreenState extends State<JourneyScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  /// City path row — the prominent entry for مدينة لا تنهار.
+  Widget _cityPathRow(AppLocalizations l) {
+    const cityAccent = Color(0xFFE91E63);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: MiddlePalette.card,
+        borderRadius: BorderRadius.circular(Palette.radiusCard),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(Palette.radiusCard),
+          onTap: () {
+            Navigator.push<void>(
+              context,
+              MaterialPageRoute(builder: (_) => const CityMapScreen()),
+            ).then((_) {
+              if (mounted) _load(sync: false);
+            });
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+            decoration: BoxDecoration(
+              border: Border.all(color: cityAccent.withValues(alpha: 0.4)),
+              borderRadius: BorderRadius.circular(Palette.radiusCard),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: cityAccent.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(Palette.radiusButton),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Text('🏙️', style: TextStyle(fontSize: 24)),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'مدينة لا تنهار',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: MiddlePalette.blueInk,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'إنقاذ المدينة عبر ٦ مهام هندسية',
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          height: 1.4,
+                          color: MiddlePalette.body,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Icon(
+                  Directionality.of(context) == TextDirection.rtl
+                      ? Icons.chevron_left_rounded
+                      : Icons.chevron_right_rounded,
+                  color: MiddlePalette.body,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 

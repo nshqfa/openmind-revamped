@@ -4,6 +4,8 @@ import '../../app_localizations.dart';
 import '../../core/middle_palette.dart';
 import '../../core/palette.dart';
 import '../../core/session.dart';
+import '../city/city_map_screen.dart';
+import '../city/city_progress_store.dart';
 import '../learn/experience_screen.dart';
 import '../learn/journey_logic.dart';
 import '../learn/learn_catalog.dart';
@@ -139,6 +141,11 @@ class _StartScreenState extends State<StartScreen> {
                     style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w900, height: 1.3),
                   ),
                   const SizedBox(height: 26),
+                  // City card (always visible for Grade 7+)
+                  if (Session.instance.grade >= 7) ...[
+                    _cityCard(context),
+                    const SizedBox(height: 16),
+                  ],
                   _gradeSoon
                       ? _gradeSoonCard(l, cs)
                       : _allDone
@@ -257,6 +264,107 @@ class _StartScreenState extends State<StartScreen> {
                 label: Text(
                   cta,
                   style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// مدينة لا تنهار entry card — shown to Grade 7+ learners.
+  Widget _cityCard(BuildContext context) {
+    return Material(
+      color: MiddlePalette.card,
+      borderRadius: BorderRadius.circular(Palette.radiusCard),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(Palette.radiusCard),
+        onTap: () {
+          Navigator.push<void>(
+            context,
+            MaterialPageRoute(builder: (_) => const CityMapScreen()),
+          ).then((_) {
+            if (mounted) _load(sync: false);
+          });
+        },
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: const Color(0xFFE91E63).withValues(alpha: 0.3),
+            ),
+            borderRadius: BorderRadius.circular(Palette.radiusCard),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE91E63).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(Palette.radiusButton),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text('🏙️', style: TextStyle(fontSize: 24)),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'مدينة لا تنهار',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                            color: MiddlePalette.blueInk,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'أنقذ المدينة — تعلّم الهندسة عبر ٦ مهام',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            height: 1.4,
+                            color: MiddlePalette.body,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Directionality.of(context) == TextDirection.rtl
+                        ? Icons.chevron_left_rounded
+                        : Icons.chevron_right_rounded,
+                    color: MiddlePalette.body,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: () {
+                  Navigator.push<void>(
+                    context,
+                    MaterialPageRoute(builder: (_) => const CityMapScreen()),
+                  ).then((_) {
+                    if (mounted) _load(sync: false);
+                  });
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFFE91E63),
+                  minimumSize: const Size(double.infinity, 48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(Palette.radiusButton),
+                  ),
+                ),
+                icon: const Icon(Icons.location_city_rounded),
+                label: const Text(
+                  'ادخل المدينة',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
                 ),
               ),
             ],

@@ -576,6 +576,24 @@ export class MemoryStore implements Store {
     return this.pathNodeCheckpoints.find((c) => c.id === checkpointId) ?? null;
   }
 
+  async createPathNodeStage(data: Omit<PathNodeStageRow, 'id' | 'createdAt'>) {
+    const row: PathNodeStageRow = { ...data, id: `mem_stage_${Date.now()}`, createdAt: new Date() };
+    this.pathNodeStages.push(row);
+    return row;
+  }
+
+  async createPathNodeActivity(data: Omit<PathNodeActivityRow, 'id' | 'createdAt'>) {
+    const row: PathNodeActivityRow = { ...data, id: `mem_activity_${Date.now()}`, createdAt: new Date() };
+    this.pathNodeActivities.push(row);
+    return row;
+  }
+
+  async createPathNodeCheckpoint(data: Omit<PathNodeCheckpointRow, 'id' | 'createdAt'>) {
+    const row: PathNodeCheckpointRow = { ...data, id: `mem_checkpoint_${Date.now()}`, createdAt: new Date() };
+    this.pathNodeCheckpoints.push(row);
+    return row;
+  }
+
   async createLearnAttempt(data: Omit<LearnAttemptRow, 'id' | 'createdAt'>): Promise<LearnAttemptRow> {
     const row: LearnAttemptRow = { ...data, id: randomUUID(), createdAt: new Date() };
     this.learnAttempts.push(row);

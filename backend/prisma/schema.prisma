@@ -279,17 +279,28 @@ model PlacementTestSession {
 model PathNodeStage {
   id          String   @id @default(cuid())
   pathNodeId  String
-  pathNode    PathNode @relation(fields: [pathNodeId], references: [id])
-  stageType   String   // "scene" | "discovery" | "explanation" | "training" | "application" | "verification"
-  orderIndex  Int      // 0-5
-  title       String
-  titleAr     String?
-  contentJson Json?    // Stage-specific content (instructions, media refs, widget config)
-  createdAt   DateTime @default(now())
-
-  @@unique([pathNodeId, stageType])
-  @@index([pathNodeId, orderIndex])
-}
+  pathNode    PathNode @relation(fields: [pathNodeId], references: [id], onDelete: Cascade)model PathNodeActivity {
+  id                String   @id @default(cuid())
+  pathNodeId        String
+  pathNode          PathNode @relation(fields: [pathNodeId], references: [id], onDelete: Cascade)model PathNodeCheckpoint {
+  id              String   @id @default(cuid())
+  pathNodeId      String
+  pathNode        PathNode @relation(fields: [pathNodeId], references: [id], onDelete: Cascade)model LearnNodeProgress {
+  id                String   @id @default(cuid())
+  studentId         String
+  student           Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  pathNodeId        String
+  pathNode          PathNode @relation(fields: [pathNodeId], references: [id], onDelete: Cascade)model LearnAttempt {
+  id              String   @id @default(cuid())
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  activityId      String
+  activity        PathNodeActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)model LearnCheckpointSubmission {
+  id              String   @id @default(cuid())
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  checkpointId    String
+  checkpoint      PathNodeCheckpoint @relation(fields: [checkpointId], references: [id], onDelete: Cascade)  currentDifficulty String    @default("intermediate")
 
 model PathNodeActivity {
   id                String   @id @default(cuid())
