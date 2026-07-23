@@ -8,6 +8,11 @@ import '../../../core/palette.dart';
 import '../city_models.dart';
 import '../widgets/activity_choice.dart';
 import '../widgets/activity_numeric_input.dart';
+import '../widgets/activity_drag_drop.dart';
+import '../widgets/activity_spin.dart';
+import '../widgets/activity_connect.dart';
+import '../widgets/activity_tap_image.dart';
+import '../widgets/activity_open_response.dart';
 import '../city_progress_store.dart';
 
 class ApplicationStage extends StatefulWidget {
@@ -63,21 +68,57 @@ class _ApplicationStageState extends State<ApplicationStage> {
           const SizedBox(height: 16),
           // Activity
           Expanded(
-            child: _activity.activityType == 'choice'
-                ? ActivityChoice(
-                    activity: _activity,
-                    accent: accent,
-                    onCorrect: _onCorrect,
-                  )
-                : ActivityNumericInput(
-                    activity: _activity,
-                    accent: accent,
-                    onCorrect: _onCorrect,
-                  ),
+            child: _buildActivityWidget(_activity, accent),
           ),
         ],
       ),
     );
+  }
+
+  /// Routes to the correct activity widget based on activity type.
+  Widget _buildActivityWidget(CityActivity activity, Color accent) {
+    return switch (activity.activityType) {
+      'choice' => ActivityChoice(
+          activity: activity,
+          accent: accent,
+          onCorrect: _onCorrect,
+        ),
+      'numeric_input' => ActivityNumericInput(
+          activity: activity,
+          accent: accent,
+          onCorrect: _onCorrect,
+        ),
+      'drag_drop' => ActivityDragDrop(
+          activity: activity,
+          accent: accent,
+          onCorrect: _onCorrect,
+        ),
+      'spin' => ActivitySpin(
+          activity: activity,
+          accent: accent,
+          onCorrect: _onCorrect,
+        ),
+      'connect' => ActivityConnect(
+          activity: activity,
+          accent: accent,
+          onCorrect: _onCorrect,
+        ),
+      'tap_image' => ActivityTapImage(
+          activity: activity,
+          accent: accent,
+          onCorrect: _onCorrect,
+        ),
+      'open_response' => ActivityOpenResponse(
+          activity: activity,
+          accent: accent,
+          onCorrect: _onCorrect,
+        ),
+      _ => ActivityChoice(
+          activity: activity,
+          accent: accent,
+          onCorrect: _onCorrect,
+        ),
+    };
   }
 
   void _onCorrect(int xp) async {

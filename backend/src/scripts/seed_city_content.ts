@@ -34,7 +34,7 @@ interface MissionDef {
   cityMission: string;
   titleAr: string;
   nodeStatus: 'available' | 'soon';
-  scene: { text: string; textAr: string };
+  scene: { text: string; sentenceAr: string };
   discovery: { instruction: string; instructionAr: string };
   explanation: { sentence: string; sentenceAr: string };
   skills: MissionSkill[];
@@ -58,7 +58,7 @@ interface TrainingActivity {
   dataJson: Record<string, unknown>;
   correctAnswerJson: Record<string, unknown>;
   correctionRulesJson?: Record<string, unknown>;
-  hintsJson: Array<{ level: number; text: string; textAr: string }>;
+  hintsJson: Array<{ level: number; text: string; sentenceAr: string }>;
   skillId?: string;
   xpReward?: number;
 }
@@ -70,7 +70,7 @@ interface ApplicationActivity {
   dataJson: Record<string, unknown>;
   correctAnswerJson: Record<string, unknown>;
   correctionRulesJson?: Record<string, unknown>;
-  hintsJson: Array<{ level: number; text: string; textAr: string }>;
+  hintsJson: Array<{ level: number; text: string; sentenceAr: string }>;
   skillId?: string;
   xpReward?: number;
 }
@@ -95,7 +95,7 @@ const MISSION_1: MissionDef = {
   nodeStatus: 'available',
   scene: {
     text: 'A new road crosses two parallel streets. We need to set up the traffic signals at the intersections correctly.',
-    textAr: 'شارع جديد يعبر طريقين متوازيين، ويجب ضبط التقاطعات لوضع الإشارات بطريقة صحيحة.',
+    sentenceAr: 'شارع جديد يعبر طريقين متوازيين، ويجب ضبط التقاطعات لوضع الإشارات بطريقة صحيحة.',
   },
   discovery: {
     instruction: 'Drag the transversal line and change its angle. Observe which angles remain equal and which change.',
@@ -122,9 +122,9 @@ const MISSION_1: MissionDef = {
           correctAnswerJson: { correctIndex: 0 },
           correctionRulesJson: { errorPatterns: [{ condition: 'chose_perpendicular', label: 'confused_parallel_perpendicular' }] },
           hintsJson: [
-            { level: 1, text: 'Think about train tracks — do they ever meet?', textAr: 'فكّر في قضبان القطار — هل تلتقي يوماً؟' },
-            { level: 2, text: 'Parallel lines keep the same distance apart.', textAr: 'المستقيمات المتوازية تحافظ على نفس المسافة بينها.' },
-            { level: 3, text: 'The answer starts with "Para" — like "parallel".', textAr: 'الإجابة تبدأ بـ "متوازية".' },
+            { level: 1, text: 'Think about train tracks — do they ever meet?', sentenceAr: 'فكّر في قضبان القطار — هل تلتقي يوماً؟' },
+            { level: 2, text: 'Parallel lines keep the same distance apart.', sentenceAr: 'المستقيمات المتوازية تحافظ على نفس المسافة بينها.' },
+            { level: 3, text: 'The answer starts with "Para" — like "parallel".', sentenceAr: 'الإجابة تبدأ بـ "متوازية".' },
           ],
           skillId: 'parallel_lines',
           xpReward: 10,
@@ -147,9 +147,9 @@ const MISSION_1: MissionDef = {
           },
           correctAnswerJson: { s1: 'a', s2: 'b', s3: 'c' },
           hintsJson: [
-            { level: 1, text: 'Parallel = same direction, Perpendicular = right angle, Intersecting = cross.', textAr: 'متوازي = نفس الاتجاه، عمودي = زاوية قائمة، متقاطع = يتقاطعان.' },
-            { level: 2, text: 'The ⊥ symbol means perpendicular (90°).', textAr: 'الرمز ⊥ يعني العمودي (90°).' },
-            { level: 3, text: 'Equal-distance pair → parallel. Right-angle pair → perpendicular.', textAr: 'الزوج المتساوي المسافة → متوازي. الزاوية القائمة → عمودي.' },
+            { level: 1, text: 'Parallel = same direction, Perpendicular = right angle, Intersecting = cross.', sentenceAr: 'متوازي = نفس الاتجاه، عمودي = زاوية قائمة، متقاطع = يتقاطعان.' },
+            { level: 2, text: 'The ⊥ symbol means perpendicular (90°).', sentenceAr: 'الرمز ⊥ يعني العمودي (90°).' },
+            { level: 3, text: 'Equal-distance pair → parallel. Right-angle pair → perpendicular.', sentenceAr: 'الزوج المتساوي المسافة → متوازي. الزاوية القائمة → عمودي.' },
           ],
           skillId: 'parallel_lines',
           xpReward: 15,
@@ -167,9 +167,9 @@ const MISSION_1: MissionDef = {
             ],
           },
           hintsJson: [
-            { level: 1, text: 'Corresponding angles are ALWAYS equal when lines are parallel.', textAr: 'الزوايا المناظرة تساوي دائماً عند توازي المستقيمات.' },
-            { level: 2, text: 'The angle has the same measure on both sides.', textAr: 'الزاوية لها نفس القياس في كلا الجانبين.' },
-            { level: 3, text: 'The answer is the same as the given angle: 65°.', textAr: 'الإجابة هي نفس الزاوية المعطاة: 65°.' },
+            { level: 1, text: 'Corresponding angles are ALWAYS equal when lines are parallel.', sentenceAr: 'الزوايا المناظرة تساوي دائماً عند توازي المستقيمات.' },
+            { level: 2, text: 'The angle has the same measure on both sides.', sentenceAr: 'الزاوية لها نفس القياس في كلا الجانبين.' },
+            { level: 3, text: 'The answer is the same as the given angle: 65°.', sentenceAr: 'الإجابة هي نفس الزاوية المعطاة: 65°.' },
           ],
           skillId: 'parallel_lines',
           xpReward: 10,
@@ -195,9 +195,9 @@ const MISSION_1: MissionDef = {
           partialCredit: true,
         },
         hintsJson: [
-          { level: 1, text: 'Vertical angles are opposite each other at the intersection point.', textAr: 'الزوايا المتقابلة بالرأس تقابل بعضها عند نقطة التقاطع.' },
-          { level: 2, text: 'A and C are vertical. B and D are vertical.', textAr: 'A و C متقابلتان. B و D متقابلتان.' },
-          { level: 3, text: 'Vertical angles always sum to the same values as their opposites.', textAr: 'الزوايا المتقابلة بالرأس تساوي دائماً نظيراتها.' },
+          { level: 1, text: 'Vertical angles are opposite each other at the intersection point.', sentenceAr: 'الزوايا المتقابلة بالرأس تقابل بعضها عند نقطة التقاطع.' },
+          { level: 2, text: 'A and C are vertical. B and D are vertical.', sentenceAr: 'A و C متقابلتان. B و D متقابلتان.' },
+          { level: 3, text: 'Vertical angles always sum to the same values as their opposites.', sentenceAr: 'الزوايا المتقابلة بالرأس تساوي دائماً نظيراتها.' },
         ],
         skillId: 'parallel_lines',
         xpReward: 20,
@@ -244,9 +244,9 @@ const MISSION_1: MissionDef = {
           dataJson: { options: ['Equal', 'Supplementary (180°)', 'Complementary (90°)', 'Always different'] },
           correctAnswerJson: { correctIndex: 0 },
           hintsJson: [
-            { level: 1, text: 'Alternate interior angles are between the parallel lines, on opposite sides of the transversal.', textAr: 'الزاويتان المتبادلتان داخلياً تقعان بين المستقيمين المتوازيين.' },
-            { level: 2, text: 'A key theorem: alternate interior angles are always equal when lines are parallel.', textAr: 'قاعدة أساسية: الزاويتان المتبادلتان داخلياً تساويان دائماً عند التوازي.' },
-            { level: 3, text: 'They are equal — same as corresponding angles.', textAr: 'تساويان — مثل الزوايا المناظرة.' },
+            { level: 1, text: 'Alternate interior angles are between the parallel lines, on opposite sides of the transversal.', sentenceAr: 'الزاويتان المتبادلتان داخلياً تقعان بين المستقيمين المتوازيين.' },
+            { level: 2, text: 'A key theorem: alternate interior angles are always equal when lines are parallel.', sentenceAr: 'قاعدة أساسية: الزاويتان المتبادلتان داخلياً تساويان دائماً عند التوازي.' },
+            { level: 3, text: 'They are equal — same as corresponding angles.', sentenceAr: 'تساويان — مثل الزوايا المناظرة.' },
           ],
           skillId: 'parallel_lines',
           xpReward: 10,
@@ -259,8 +259,8 @@ const MISSION_1: MissionDef = {
           correctAnswerJson: { value: 130 },
           correctionRulesJson: { tolerance: 0 },
           hintsJson: [
-            { level: 1, text: 'Alternate interior angles are equal when lines are parallel.', textAr: 'الزوايا المتبادلة داخلية متساوية عند التوازي.' },
-            { level: 2, text: 'Same measure as the given angle.', textAr: 'نفس قياس الزاوية المعطاة.' },
+            { level: 1, text: 'Alternate interior angles are equal when lines are parallel.', sentenceAr: 'الزوايا المتبادلة داخلية متساوية عند التوازي.' },
+            { level: 2, text: 'Same measure as the given angle.', sentenceAr: 'نفس قياس الزاوية المعطاة.' },
           ],
           skillId: 'parallel_lines',
           xpReward: 15,
@@ -273,8 +273,8 @@ const MISSION_1: MissionDef = {
           correctAnswerJson: { correctIndex: 1 },
           correctionRulesJson: { errorPatterns: [{ condition: 'supplement_confusion', label: 'confused_exterior_supplement' }] },
           hintsJson: [
-            { level: 1, text: 'Alternate exterior angles follow the same rule as alternate interior.', textAr: 'الزوايا المتبادلة خارجية تتبع نفس قاعدة المتبادلة داخلية.' },
-            { level: 2, text: 'They are equal.', textAr: 'تساويان.' },
+            { level: 1, text: 'Alternate exterior angles follow the same rule as alternate interior.', sentenceAr: 'الزوايا المتبادلة خارجية تتبع نفس قاعدة المتبادلة داخلية.' },
+            { level: 2, text: 'They are equal.', sentenceAr: 'تساويان.' },
           ],
           skillId: 'parallel_lines',
           xpReward: 10,
@@ -302,9 +302,9 @@ const MISSION_1: MissionDef = {
           errorPatterns: [{ condition: 'procedural_error', label: 'wrong_beam_angle' }],
         },
         hintsJson: [
-          { level: 1, text: 'Parallel beams need equal corresponding angles.', textAr: 'الدعامات المتوازية تحتاج زوايا مناظرة متساوية.' },
-            { level: 2, text: 'Interior angles on the same side of the transversal are supplementary.', textAr: 'الزوايا الداخلية في نفس جانب القاطع متكاملة.' },
-            { level: 3, text: 'If one angle is 75°, the interior on the same side is 180° - 75° = 105°.', textAr: 'إذا إحدى الزوايا 75°، الداخلية في نفس الجانب = 180° - 75° = 105°.' },
+          { level: 1, text: 'Parallel beams need equal corresponding angles.', sentenceAr: 'الدعامات المتوازية تحتاج زوايا مناظرة متساوية.' },
+          { level: 2, text: 'Interior angles on the same side of the transversal are supplementary.', sentenceAr: 'الزوايا الداخلية في نفس جانب القاطع متكاملة.' },
+          { level: 3, text: 'If one angle is 75°, the interior on the same side is 180° - 75° = 105°.', sentenceAr: 'إذا إحدى الزوايا 75°، الداخلية في نفس الجانب = 180° - 75° = 105°.' },
         ],
         skillId: 'parallel_lines',
         xpReward: 25,
@@ -348,7 +348,7 @@ const MISSION_2: MissionDef = {
   nodeStatus: 'soon',
   scene: {
     text: 'The smart intersection uses angle sensors. We need to program the sensors by understanding angle relationships.',
-    textAr: 'تقاطع ذكي يستخدم حساسات زوايا. نحتاج برمجتها بفهم علاقات الزوايا.',
+    sentenceAr: 'تقاطع ذكي يستخدم حساسات زوايا. نحتاج برمجتها بفهم علاقات الزوايا.',
   },
   discovery: {
     instruction: 'Change the angles in the intersection and observe which pairs always add up to 180° and which are always equal.',
@@ -373,9 +373,9 @@ const MISSION_2: MissionDef = {
           dataJson: { options: ['Acute', 'Right', 'Obtuse', 'Straight'] },
           correctAnswerJson: { correctIndex: 2 },
           hintsJson: [
-            { level: 1, text: 'Acute < 90°, Right = 90°, Obtuse > 90° and < 180°.', textAr: 'حادة < 90°، قائمة = 90°، منفرجة > 90° و < 180°.' },
-            { level: 2, text: '120° is greater than 90°.', textAr: '120° أكبر من 90°.' },
-            { level: 3, text: 'The answer is "Obtuse" (منفرجة).', textAr: 'الإجابة "منفرجة".' },
+            { level: 1, text: 'Acute < 90°, Right = 90°, Obtuse > 90° and < 180°.', sentenceAr: 'حادة < 90°، قائمة = 90°، منفرجة > 90° و < 180°.' },
+            { level: 2, text: '120° is greater than 90°.', sentenceAr: '120° أكبر من 90°.' },
+            { level: 3, text: 'The answer is "Obtuse" (منفرجة).', sentenceAr: 'الإجابة "منفرجة".' },
           ],
           skillId: 'angles',
           xpReward: 10,
@@ -388,8 +388,8 @@ const MISSION_2: MissionDef = {
           correctAnswerJson: { value: 110 },
           correctionRulesJson: { tolerance: 0, errorPatterns: [{ condition: 'supplement_confusion', label: 'supplement_miscalculation' }] },
           hintsJson: [
-            { level: 1, text: 'Adjacent angles on a straight line add up to 180°.', textAr: 'الزاويتان المتجاورتان على مستقيم مجموعهما 180°.' },
-            { level: 2, text: '180° - 70° = ?', textAr: '180° - 70° = ؟' },
+            { level: 1, text: 'Adjacent angles on a straight line add up to 180°.', sentenceAr: 'الزاويتان المتجاورتان على مستقيم مجموعهما 180°.' },
+            { level: 2, text: '180° - 70° = ?', sentenceAr: '180° - 70° = ؟' },
           ],
           skillId: 'angles',
           xpReward: 10,
@@ -401,8 +401,8 @@ const MISSION_2: MissionDef = {
           dataJson: { options: ['35°', '145°', '55°', '90°'] },
           correctAnswerJson: { correctIndex: 0 },
           hintsJson: [
-            { level: 1, text: 'Vertical angles are always equal.', textAr: 'الزوايا المتقابلة بالرأس متساوية دائماً.' },
-            { level: 2, text: 'The opposite angle has the same measure.', textAr: 'الزاوية المقابلة لها نفس القياس.' },
+            { level: 1, text: 'Vertical angles are always equal.', sentenceAr: 'الزوايا المتقابلة بالرأس متساوية دائماً.' },
+            { level: 2, text: 'The opposite angle has the same measure.', sentenceAr: 'الزاوية المقابلة لها نفس القياس.' },
           ],
           skillId: 'angles',
           xpReward: 10,
@@ -416,8 +416,8 @@ const MISSION_2: MissionDef = {
         correctAnswerJson: { angles: { A: 70, B: 110, C: 70, D: 110 } },
         correctionRulesJson: { tolerance: 2, partialCredit: true },
         hintsJson: [
-          { level: 1, text: 'The intersection creates two pairs of equal vertical angles.', textAr: 'التقاطع يُنشئ زوجين من الزوايا المتقابلة المتساوية.' },
-          { level: 2, text: 'A = C and B = D. A + B = 180°.', textAr: 'A = C و B = D. A + B = 180°.' },
+          { level: 1, text: 'The intersection creates two pairs of equal vertical angles.', sentenceAr: 'التقاطع يُنشئ زوجين من الزوايا المتقابلة المتساوية.' },
+          { level: 2, text: 'A = C and B = D. A + B = 180°.', sentenceAr: 'A = C و B = D. A + B = 180°.' },
         ],
         skillId: 'angles',
         xpReward: 20,
@@ -443,8 +443,8 @@ const MISSION_2: MissionDef = {
           correctAnswerJson: { value: 53 },
           correctionRulesJson: { tolerance: 0 },
           hintsJson: [
-            { level: 1, text: 'Complementary angles add up to 90°.', textAr: 'الزوايا المتتامان مجموعها 90°.' },
-            { level: 2, text: '90° - 37° = ?', textAr: '90° - 37° = ؟' },
+            { level: 1, text: 'Complementary angles add up to 90°.', sentenceAr: 'الزوايا المتتامان مجموعها 90°.' },
+            { level: 2, text: '90° - 37° = ?', sentenceAr: '90° - 37° = ؟' },
           ],
           skillId: 'angles',
           xpReward: 10,
@@ -467,8 +467,8 @@ const MISSION_2: MissionDef = {
           },
           correctAnswerJson: { placements: [{ slotId: 's1', itemId: 'a' }, { slotId: 's2', itemId: 'b' }, { slotId: 's3', itemId: 'c' }] },
           hintsJson: [
-            { level: 1, text: 'Complementary = sum 90°. Supplementary = sum 180°.', textAr: 'متتامان = مجموع 90°. متكاملان = مجموع 180°.' },
-            { level: 2, text: '60+30=90, 110+70=180, 45+45=90 AND 45+45≠180.', textAr: '60+30=90، 110+70=180، 45+45=90 و 45+45≠180.' },
+            { level: 1, text: 'Complementary = sum 90°. Supplementary = sum 180°.', sentenceAr: 'متتامان = مجموع 90°. متكاملان = مجموع 180°.' },
+            { level: 2, text: '60+30=90, 110+70=180, 45+45=90 AND 45+45≠180.', sentenceAr: '60+30=90، 110+70=180، 45+45=90 و 45+45≠180.' },
           ],
           skillId: 'angles',
           xpReward: 15,
@@ -482,8 +482,8 @@ const MISSION_2: MissionDef = {
         correctAnswerJson: { supplementary: 45 },
         correctionRulesJson: { tolerance: 0 },
         hintsJson: [
-          { level: 1, text: 'Supplementary angles add to 180°.', textAr: 'الزوايا المتكاملة مجموعها 180°.' },
-            { level: 2, text: '180° - 135° = 45°.', textAr: '180° - 135° = 45°.' },
+          { level: 1, text: 'Supplementary angles add to 180°.', sentenceAr: 'الزوايا المتكاملة مجموعها 180°.' },
+          { level: 2, text: '180° - 135° = 45°.', sentenceAr: '180° - 135° = 45°.' },
         ],
         skillId: 'angles',
         xpReward: 20,
@@ -507,7 +507,7 @@ const MISSION_3: MissionDef = {
   nodeStatus: 'soon',
   scene: {
     text: 'The old bridge is unstable. We need to verify that its parallelogram-shaped supports have the correct properties to hold.',
-    textAr: 'الجسر القديم غير مستقر. نحتاج التحقق من أن دعاماته على شكل متوازي أضلاع تمتلك الخصائص الصحيحة.',
+    sentenceAr: 'الجسر القديم غير مستقر. نحتاج التحقق من أن دعاماته على شكل متوازي أضلاع تمتلك الخصائص الصحيحة.',
   },
   discovery: {
     instruction: 'Measure the sides and angles of the bridge support. Drag vertices and observe how opposite sides stay equal and parallel.',
@@ -515,7 +515,7 @@ const MISSION_3: MissionDef = {
   },
   explanation: {
     sentence: 'In a parallelogram: opposite sides are equal and parallel, opposite angles are equal, and diagonals bisect each other.',
-    textAr: 'في متوازي الأضلاع: الأضلاع المتقابلة متساوية ومتوازية، والزوايا المتقابلة متساوية، والأقطار تنصف بعضها.',
+    sentenceAr: 'في متوازي الأضلاع: الأضلاع المتقابلة متساوية ومتوازية، والزوايا المتقابلة متساوية، والأقطار تنصف بعضها.',
   },
   skills: [
     {
@@ -532,8 +532,8 @@ const MISSION_3: MissionDef = {
           dataJson: { options: ['Equal and parallel', 'Equal only', 'Parallel only', 'Perpendicular'] },
           correctAnswerJson: { correctIndex: 0 },
           hintsJson: [
-            { level: 1, text: 'The name "parallelogram" contains "parallel".', textAr: 'اسم "متوازي الأضلاع" يحتوي "متوازي".' },
-            { level: 2, text: 'Both equal AND parallel.', textAr: 'متساوية ومتوازية معاً.' },
+            { level: 1, text: 'The name "parallelogram" contains "parallel".', sentenceAr: 'اسم "متوازي الأضلاع" يحتوي "متوازي".' },
+            { level: 2, text: 'Both equal AND parallel.', sentenceAr: 'متساوية ومتوازية معاً.' },
           ],
           skillId: 'parallelogram',
           xpReward: 10,
@@ -547,8 +547,8 @@ const MISSION_3: MissionDef = {
           },
           correctAnswerJson: { properties: { oppositeSidesEqual: true, oppositeSidesParallel: true, oppositeAnglesEqual: true } },
           hintsJson: [
-            { level: 1, text: 'A trapezoid has only one pair of parallel sides.', textAr: 'شبه المنحرف لديه زوج واحد فقط من الأضلاع المتوازية.' },
-            { level: 2, text: 'Parallelogram is the answer — both pairs of opposite sides are equal and parallel.', textAr: 'متوازي الأضلاع هو الجواب — كلا الزوجين متساويان ومتوازيان.' },
+            { level: 1, text: 'A trapezoid has only one pair of parallel sides.', sentenceAr: 'شبه المنحرف لديه زوج واحد فقط من الأضلاع المتوازية.' },
+            { level: 2, text: 'Parallelogram is the answer — both pairs of opposite sides are equal and parallel.', sentenceAr: 'متوازي الأضلاع هو الجواب — كلا الزوجين متساويان ومتوازيان.' },
           ],
           skillId: 'parallelogram',
           xpReward: 15,
@@ -561,7 +561,7 @@ const MISSION_3: MissionDef = {
           correctAnswerJson: { value: 8 },
           correctionRulesJson: { tolerance: 0 },
           hintsJson: [
-            { level: 1, text: 'Opposite sides of a parallelogram are equal.', textAr: 'الأضلاع المتقابلة في متوازي الأضلاع متساوية.' },
+            { level: 1, text: 'Opposite sides of a parallelogram are equal.', sentenceAr: 'الأضلاع المتقابلة في متوازي الأضلاع متساوية.' },
           ],
           skillId: 'parallelogram',
           xpReward: 10,
@@ -575,8 +575,8 @@ const MISSION_3: MissionDef = {
         correctAnswerJson: { properties: { isParallelogram: true, oppositeSidesEqual: true, oppositeAnglesEqual: true } },
         correctionRulesJson: { partialCredit: true },
         hintsJson: [
-          { level: 1, text: 'Check: are opposite sides the same length?', textAr: 'تحقق: هل الأضلاع المتقابلة بنفس الطول؟' },
-            { level: 2, text: 'Check: are opposite angles the same measure?', textAr: 'تحقق: هل الزوايا المتقابلة بنفس القياس؟' },
+          { level: 1, text: 'Check: are opposite sides the same length?', sentenceAr: 'تحقق: هل الأضلاع المتقابلة بنفس الطول؟' },
+          { level: 2, text: 'Check: are opposite angles the same measure?', sentenceAr: 'تحقق: هل الزوايا المتقابلة بنفس القياس؟' },
         ],
         skillId: 'parallelogram',
         xpReward: 20,
@@ -602,7 +602,7 @@ const MISSION_3: MissionDef = {
           correctAnswerJson: { value: 4 },
           correctionRulesJson: { tolerance: 0 },
           hintsJson: [
-            { level: 1, text: 'Diagonals of a parallelogram bisect each other.', textAr: 'أقطار متوازي الأضلاع تنصف بعضها.' },
+            { level: 1, text: 'Diagonals of a parallelogram bisect each other.', sentenceAr: 'أقطار متوازي الأضلاع تنصف بعضها.' },
           ],
           skillId: 'parallelogram',
           xpReward: 10,
@@ -615,8 +615,8 @@ const MISSION_3: MissionDef = {
           correctAnswerJson: { value: 110 },
           correctionRulesJson: { tolerance: 0, errorPatterns: [{ condition: 'supplement_confusion', label: 'adjacent_not_opposite' }] },
           hintsJson: [
-            { level: 1, text: 'Consecutive (adjacent) angles in a parallelogram are supplementary.', textAr: 'الزوايا المتتالية في متوازي الأضلاع متكاملة.' },
-            { level: 2, text: '180° - 70° = 110°.', textAr: '180° - 70° = 110°.' },
+            { level: 1, text: 'Consecutive (adjacent) angles in a parallelogram are supplementary.', sentenceAr: 'الزوايا المتتالية في متوازي الأضلاع متكاملة.' },
+            { level: 2, text: '180° - 70° = 110°.', sentenceAr: '180° - 70° = 110°.' },
           ],
           skillId: 'parallelogram',
           xpReward: 15,
@@ -630,7 +630,7 @@ const MISSION_3: MissionDef = {
         correctAnswerJson: { constraints: [{ angle: 6 }, { angle: 6 }] },
         correctionRulesJson: { tolerance: 0 },
         hintsJson: [
-          { level: 1, text: 'Both halves of the diagonals must be equal.', textAr: 'نصفا الأقطار يجب أن يكونا متساويين.' },
+          { level: 1, text: 'Both halves of the diagonals must be equal.', sentenceAr: 'نصفا الأقطار يجب أن يكونا متساويين.' },
         ],
         skillId: 'parallelogram',
         xpReward: 20,
@@ -654,7 +654,7 @@ const MISSION_4: MissionDef = {
   nodeStatus: 'soon',
   scene: {
     text: 'The city needs buildings of different shapes. We must understand the unique properties of rectangles, squares, and rhombuses to build them correctly.',
-    textAr: 'المدينة تحتاج مبانٍ بأشكال مختلفة. يجب فهم خصائص المستطيل والمربع والمعين لبنائها بشكل صحيح.',
+    sentenceAr: 'المدينة تحتاج مبانٍ بأشكال مختلفة. يجب فهم خصائص المستطيل والمربع والمعين لبنائها بشكل صحيح.',
   },
   discovery: {
     instruction: 'Compare the shapes: drag vertices and observe which properties change and which stay fixed.',
@@ -662,7 +662,7 @@ const MISSION_4: MissionDef = {
   },
   explanation: {
     sentence: 'Rectangle = parallelogram with right angles. Square = rectangle with equal sides. Rhombus = parallelogram with equal sides.',
-    textAr: 'المستطيل = متوازي أضلاع بزوايا قائمة. المربع = مستطيل بأضلاع متساوية. المعين = متوازي أضلاع بأضلاع متساوية.',
+    sentenceAr: 'المستطيل = متوازي أضلاع بزوايا قائمة. المربع = مستطيل بأضلاع متساوية. المعين = متوازي أضلاع بأضلاع متساوية.',
   },
   skills: [
     {
@@ -679,7 +679,7 @@ const MISSION_4: MissionDef = {
           dataJson: { options: ['Rhombus', 'Rectangle', 'Trapezoid', 'Kite'] },
           correctAnswerJson: { correctIndex: 1 },
           hintsJson: [
-            { level: 1, text: 'A rectangle is a special parallelogram with 90° angles.', textAr: 'المستطيل متوازي أضلاع خاص بزوايا 90°.' },
+            { level: 1, text: 'A rectangle is a special parallelogram with 90° angles.', sentenceAr: 'المستطيل متوازي أضلاع خاص بزوايا 90°.' },
           ],
           skillId: 'rectangle',
           xpReward: 10,
@@ -691,8 +691,8 @@ const MISSION_4: MissionDef = {
           dataJson: { options: ['Equal only', 'Equal and perpendicular', 'Unequal', 'Parallel'] },
           correctAnswerJson: { correctIndex: 1 },
           hintsJson: [
-            { level: 1, text: 'A square is both a rectangle and a rhombus — it has properties of both.', textAr: 'المربع مستطيل ومعين معاً — يجمع خصائصهما.' },
-            { level: 2, text: 'Equal (from rectangle) AND perpendicular (from rhombus).', textAr: 'متساوية (من المستطيل) ومتعامدة (من المعين).' },
+            { level: 1, text: 'A square is both a rectangle and a rhombus — it has properties of both.', sentenceAr: 'المربع مستطيل ومعين معاً — يجمع خصائصهما.' },
+            { level: 2, text: 'Equal (from rectangle) AND perpendicular (from rhombus).', sentenceAr: 'متساوية (من المستطيل) ومتعامدة (من المعين).' },
           ],
           skillId: 'rectangle',
           xpReward: 15,
@@ -715,7 +715,7 @@ const MISSION_4: MissionDef = {
           },
           correctAnswerJson: { placements: [{ slotId: 's1', itemId: 'a' }, { slotId: 's2', itemId: 'b' }, { slotId: 's3', itemId: 'c' }] },
           hintsJson: [
-            { level: 1, text: 'Square = equal sides + right angles. Rhombus = equal sides, no right angle requirement.', textAr: 'المربع = أضلاع متساوية + زوايا قائمة. المعين = أضلاع متساوية بدون شرط القوائم.' },
+            { level: 1, text: 'Square = equal sides + right angles. Rhombus = equal sides, no right angle requirement.', sentenceAr: 'المربع = أضلاع متساوية + زوايا قائمة. المعين = أضلاع متساوية بدون شرط القوائم.' },
           ],
           skillId: 'rectangle',
           xpReward: 15,
@@ -729,7 +729,7 @@ const MISSION_4: MissionDef = {
         correctAnswerJson: { classifications: ['square', 'rectangle', 'rhombus'] },
         correctionRulesJson: { partialCredit: true },
         hintsJson: [
-          { level: 1, text: 'Equal sides + right angles = square. Opposite equal + right angles = rectangle. Equal sides + not right = rhombus.', textAr: 'أضلاع متساوية + قوائم = مربع. متقابلة متساوية + قوائم = مستطيل. متساوية + غير قوائم = معين.' },
+          { level: 1, text: 'Equal sides + right angles = square. Opposite equal + right angles = rectangle. Equal sides + not right = rhombus.', sentenceAr: 'أضلاع متساوية + قوائم = مربع. متقابلة متساوية + قوائم = مستطيل. متساوية + غير قوائم = معين.' },
         ],
         skillId: 'rectangle',
         xpReward: 20,
@@ -755,8 +755,8 @@ const MISSION_4: MissionDef = {
           correctAnswerJson: { value: 70 },
           correctionRulesJson: { tolerance: 0 },
           hintsJson: [
-            { level: 1, text: 'Area of rectangle = length × width.', textAr: 'مساحة المستطيل = الطول × العرض.' },
-            { level: 2, text: '10 × 7 = ?', textAr: '10 × 7 = ؟' },
+            { level: 1, text: 'Area of rectangle = length × width.', sentenceAr: 'مساحة المستطيل = الطول × العرض.' },
+            { level: 2, text: '10 × 7 = ?', sentenceAr: '10 × 7 = ؟' },
           ],
           skillId: 'rectangle',
           xpReward: 10,
@@ -769,7 +769,7 @@ const MISSION_4: MissionDef = {
           correctAnswerJson: { value: 20 },
           correctionRulesJson: { tolerance: 0 },
           hintsJson: [
-            { level: 1, text: 'Perimeter = 4 × side (all sides equal).', textAr: 'المحيط = 4 × الضلع (جميع الأضلاع متساوية).' },
+            { level: 1, text: 'Perimeter = 4 × side (all sides equal).', sentenceAr: 'المحيط = 4 × الضلع (جميع الأضلاع متساوية).' },
           ],
           skillId: 'rectangle',
           xpReward: 10,
@@ -783,8 +783,8 @@ const MISSION_4: MissionDef = {
         correctAnswerJson: { area: 96 },
         correctionRulesJson: { tolerance: 0 },
         hintsJson: [
-          { level: 1, text: 'Area = length × width.', textAr: 'المساحة = الطول × العرض.' },
-          { level: 2, text: '12 × 8 = 96 m².', textAr: '12 × 8 = 96 م².' },
+          { level: 1, text: 'Area = length × width.', sentenceAr: 'المساحة = الطول × العرض.' },
+          { level: 2, text: '12 × 8 = 96 m².', sentenceAr: '12 × 8 = 96 م².' },
         ],
         skillId: 'rectangle',
         xpReward: 20,
@@ -808,7 +808,7 @@ const MISSION_5: MissionDef = {
   nodeStatus: 'soon',
   scene: {
     text: 'The city square needs paving. We must calculate the area of parallelogram-shaped sections to order the right amount of material.',
-    textAr: 'ساحة المدينة تحتاج تبليطاً. يجب حساب مساحة الأقسام على شكل متوازي أضلاع لطلب الكمية الصحيحة من المواد.',
+    sentenceAr: 'ساحة المدينة تحتاج تبليطاً. يجب حساب مساحة الأقسام على شكل متوازي أضلاع لطلب الكمية الصحيحة من المواد.',
   },
   discovery: {
     instruction: 'Drag the parallelogram to transform it into a rectangle. Observe how the area stays the same.',
@@ -816,7 +816,7 @@ const MISSION_5: MissionDef = {
   },
   explanation: {
     sentence: 'Area of a parallelogram = base × height. A parallelogram has the same area as a rectangle with the same base and height.',
-    textAr: 'مساحة متوازي الأضلاع = القاعدة × الارتفاع. متوازي الأضلاع له نفس مساحة المستطيل بنفس القاعدة والارتفاع.',
+    sentenceAr: 'مساحة متوازي الأضلاع = القاعدة × الارتفاع. متوازي الأضلاع له نفس مساحة المستطيل بنفس القاعدة والارتفاع.',
   },
   skills: [
     {
@@ -833,7 +833,7 @@ const MISSION_5: MissionDef = {
           dataJson: { options: ['Same perimeter', 'Same base and height', 'Same side lengths', 'Same angles'] },
           correctAnswerJson: { correctIndex: 1 },
           hintsJson: [
-            { level: 1, text: 'The area formula for both is base × height.', textAr: 'قانون المساحة لكليهما: القاعدة × الارتفاع.' },
+            { level: 1, text: 'The area formula for both is base × height.', sentenceAr: 'قانون المساحة لكليهما: القاعدة × الارتفاع.' },
           ],
           skillId: 'parallelogram_area',
           xpReward: 10,
@@ -854,7 +854,7 @@ const MISSION_5: MissionDef = {
           },
           correctAnswerJson: { placements: [{ slotId: 's1', itemId: 'a' }, { slotId: 's2', itemId: 'b' }] },
           hintsJson: [
-            { level: 1, text: 'Base is the bottom side. Height is the perpendicular distance from base to opposite side.', textAr: 'القاعدة هي الضلع السفلي. الارتفاع هو المسافة العمودية من القاعدة للضلع المقابل.' },
+            { level: 1, text: 'Base is the bottom side. Height is the perpendicular distance from base to opposite side.', sentenceAr: 'القاعدة هي الضلع السفلي. الارتفاع هو المسافة العمودية من القاعدة للضلع المقابل.' },
           ],
           skillId: 'parallelogram_area',
           xpReward: 15,
@@ -867,8 +867,8 @@ const MISSION_5: MissionDef = {
           correctAnswerJson: { value: 120 },
           correctionRulesJson: { tolerance: 0, errorPatterns: [{ condition: 'double', label: 'added_instead_of_multiplied' }] },
           hintsJson: [
-            { level: 1, text: 'Area = base × height.', textAr: 'المساحة = القاعدة × الارتفاع.' },
-            { level: 2, text: '15 × 8 = ?', textAr: '15 × 8 = ؟' },
+            { level: 1, text: 'Area = base × height.', sentenceAr: 'المساحة = القاعدة × الارتفاع.' },
+            { level: 2, text: '15 × 8 = ?', sentenceAr: '15 × 8 = ؟' },
           ],
           skillId: 'parallelogram_area',
           xpReward: 10,
@@ -882,7 +882,7 @@ const MISSION_5: MissionDef = {
         correctAnswerJson: { area: 120 },
         correctionRulesJson: { tolerance: 0 },
         hintsJson: [
-          { level: 1, text: 'Area = base × height = 15 × 8.', textAr: 'المساحة = القاعدة × الارتفاع = 15 × 8.' },
+          { level: 1, text: 'Area = base × height = 15 × 8.', sentenceAr: 'المساحة = القاعدة × الارتفاع = 15 × 8.' },
         ],
         skillId: 'parallelogram_area',
         xpReward: 20,
@@ -908,8 +908,8 @@ const MISSION_5: MissionDef = {
           correctAnswerJson: { value: 5 },
           correctionRulesJson: { tolerance: 0, errorPatterns: [{ condition: 'half', label: 'divided_wrong' }] },
           hintsJson: [
-            { level: 1, text: 'Height = Area ÷ Base.', textAr: 'الارتفاع = المساحة ÷ القاعدة.' },
-            { level: 2, text: '200 ÷ 40 = ?', textAr: '200 ÷ 40 = ؟' },
+            { level: 1, text: 'Height = Area ÷ Base.', sentenceAr: 'الارتفاع = المساحة ÷ القاعدة.' },
+            { level: 2, text: '200 ÷ 40 = ?', sentenceAr: '200 ÷ 40 = ؟' },
           ],
           skillId: 'parallelogram_area',
           xpReward: 15,
@@ -922,8 +922,8 @@ const MISSION_5: MissionDef = {
           correctAnswerJson: { value: 30 },
           correctionRulesJson: { tolerance: 0, errorPatterns: [{ condition: 'double', label: 'used_wrong_formula' }] },
           hintsJson: [
-            { level: 1, text: 'Rhombus area = (d1 × d2) ÷ 2.', textAr: 'مساحة المعين = (d1 × d2) ÷ 2.' },
-            { level: 2, text: '(10 × 6) ÷ 2 = 30.', textAr: '(10 × 6) ÷ 2 = 30.' },
+            { level: 1, text: 'Rhombus area = (d1 × d2) ÷ 2.', sentenceAr: 'مساحة المعين = (d1 × d2) ÷ 2.' },
+            { level: 2, text: '(10 × 6) ÷ 2 = 30.', sentenceAr: '(10 × 6) ÷ 2 = 30.' },
           ],
           skillId: 'parallelogram_area',
           xpReward: 15,
@@ -937,7 +937,7 @@ const MISSION_5: MissionDef = {
         correctAnswerJson: { height: 8, tileCount: 192 },
         correctionRulesJson: { tolerance: 1 },
         hintsJson: [
-          { level: 1, text: 'Height = 96 ÷ 12 = 8. Tiles = 96 ÷ 0.5 = 192.', textAr: 'الارتفاع = 96 ÷ 12 = 8. البلاط = 96 ÷ 0.5 = 192.' },
+          { level: 1, text: 'Height = 96 ÷ 12 = 8. Tiles = 96 ÷ 0.5 = 192.', sentenceAr: 'الارتفاع = 96 ÷ 12 = 8. البلاط = 96 ÷ 0.5 = 192.' },
         ],
         skillId: 'parallelogram_area',
         xpReward: 25,
@@ -961,7 +961,7 @@ const MISSION_6: MissionDef = {
   nodeStatus: 'soon',
   scene: {
     text: 'The city faces a major crisis! Multiple structures need fixing at once. Apply everything you have learned about lines, angles, parallelograms, and areas to save the city.',
-    textAr: 'المدينة تواجه أزمة كبرى! عدة هياكل تحتاج إصلاحاً في وقت واحد. طبّق كل ما تعلمته عن الخطوط والزوايا ومتوازي الأضلاع والمساحات لإنقاذ المدينة.',
+    sentenceAr: 'المدينة تواجه أزمة كبرى! عدة هياكل تحتاج إصلاحاً في وقت واحد. طبّق كل ما تعلمته عن الخطوط والزوايا ومتوازي الأضلاع والمساحات لإنقاذ المدينة.',
   },
   discovery: {
     instruction: 'Explore the city crisis map. Each damaged structure requires knowledge from a different mission.',
@@ -969,7 +969,7 @@ const MISSION_6: MissionDef = {
   },
   explanation: {
     sentence: 'Every engineering problem in the city can be solved using the properties of lines, angles, and quadrilaterals you have mastered.',
-    textAr: 'كل مشكلة هندسية في المدينة يمكن حلها باستخدام خصائص الخطوط والزوايا والأشكال الرباعية التي أتقنتها.',
+    sentenceAr: 'كل مشكلة هندسية في المدينة يمكن حلها باستخدام خصائص الخطوط والزوايا والأشكال الرباعية التي أتقنتها.',
   },
   skills: [
     {
@@ -986,7 +986,7 @@ const MISSION_6: MissionDef = {
           dataJson: { options: ['75°', '105°', '90°', '180°'] },
           correctAnswerJson: { correctIndex: 0 },
           hintsJson: [
-            { level: 1, text: 'Opposite angles in a parallelogram are equal.', textAr: 'الزوايا المتقابلة في متوازي الأضلاع متساوية.' },
+            { level: 1, text: 'Opposite angles in a parallelogram are equal.', sentenceAr: 'الزوايا المتقابلة في متوازي الأضلاع متساوية.' },
           ],
           skillId: 'combined',
           xpReward: 10,
@@ -999,7 +999,7 @@ const MISSION_6: MissionDef = {
           correctAnswerJson: { value: 55 },
           correctionRulesJson: { tolerance: 0 },
           hintsJson: [
-            { level: 1, text: 'Corresponding angles are equal.', textAr: 'الزوايا المناظرة متساوية.' },
+            { level: 1, text: 'Corresponding angles are equal.', sentenceAr: 'الزوايا المناظرة متساوية.' },
           ],
           skillId: 'combined',
           xpReward: 10,
@@ -1012,8 +1012,8 @@ const MISSION_6: MissionDef = {
           correctAnswerJson: { value: 198 },
           correctionRulesJson: { tolerance: 0 },
           hintsJson: [
-            { level: 1, text: 'Area = base × height = 18 × 11.', textAr: 'المساحة = القاعدة × الارتفاع = 18 × 11.' },
-            { level: 2, text: '18 × 11 = 198 m² = 198 tiles.', textAr: '18 × 11 = 198 م² = 198 بلاطة.' },
+            { level: 1, text: 'Area = base × height = 18 × 11.', sentenceAr: 'المساحة = القاعدة × الارتفاع = 18 × 11.' },
+            { level: 2, text: '18 × 11 = 198 m² = 198 tiles.', sentenceAr: '18 × 11 = 198 م² = 198 بلاطة.' },
           ],
           skillId: 'combined',
           xpReward: 15,
@@ -1039,7 +1039,7 @@ const MISSION_6: MissionDef = {
         },
         correctionRulesJson: { tolerance: 2, partialCredit: true },
         hintsJson: [
-          { level: 1, text: 'Beam angle + adjacent = 180°. Support opposite = same. Foundation = square properties.', textAr: 'زاوية الدعامة + المجاورة = 180°. المقابلة = نفسها. الأساس = خصائص المربع.' },
+          { level: 1, text: 'Beam angle + adjacent = 180°. Support opposite = same. Foundation = square properties.', sentenceAr: 'زاوية الدعامة + المجاورة = 180°. المقابلة = نفسها. الأساس = خصائص المربع.' },
         ],
         skillId: 'combined',
         xpReward: 30,
@@ -1146,7 +1146,7 @@ async function main() {
           conceptKey: mission.conceptKey,
           cityMission: mission.cityMission,
           nodeStatus: mission.nodeStatus,
-          sceneJson: { text: mission.scene.text, textAr: mission.scene.textAr },
+          sceneJson: { text: mission.scene.text, sentenceAr: mission.scene.sentenceAr },
           discoveryJson: { instruction: mission.discovery.instruction, instructionAr: mission.discovery.instructionAr },
           explanationJson: { sentence: mission.explanation.sentence, sentenceAr: mission.explanation.sentenceAr },
         });
@@ -1159,7 +1159,7 @@ async function main() {
           cityMission: mission.cityMission,
           titleAr: skill.titleAr,
           nodeStatus: mission.nodeStatus,
-          sceneJson: { text: mission.scene.text, textAr: mission.scene.textAr },
+          sceneJson: { text: mission.scene.text, sentenceAr: mission.scene.sentenceAr },
           discoveryJson: { instruction: mission.discovery.instruction, instructionAr: mission.discovery.instructionAr },
           explanationJson: { sentence: mission.explanation.sentence, sentenceAr: mission.explanation.sentenceAr },
         });
@@ -1278,7 +1278,7 @@ function buildStageContent(
     case 'scene':
       return {
         text: mission.scene.text,
-        textAr: mission.scene.textAr,
+        sentenceAr: mission.scene.sentenceAr,
         image: null,
       };
     case 'discovery':

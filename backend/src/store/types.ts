@@ -101,8 +101,8 @@ export interface PathNodeRow {
   xpReward: number;
   depth: number; // spiral depth: 0=basic, 1=deepen, 2=mastery
   learningPathId: string;
-  conceptKey?: string;
-  cityMission?: string;
+  conceptKey?: string | null;
+  cityMission?: string | null;
   nodeStatus?: string;  // "available" | "in_progress" | "completed" | "soon"
   sceneJson?: Record<string, unknown> | null;
   discoveryJson?: Record<string, unknown> | null;

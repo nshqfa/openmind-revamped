@@ -3,9 +3,14 @@
 ///
 /// These models describe the 6 missions, each with 6 stages, training + application
 /// activities, and a checkpoint quiz. Content is Arabic-first.
+///
+/// Supports all 7 question types: choice, drag_drop, spin, connect,
+/// numeric_input, tap_image, open_response.
 library;
 
 import 'dart:convert';
+
+import '../../shared/question_types/question_models.dart' show QuestionType;
 
 // ─── Mission ──────────────────────────────────────────────────────────────────
 
@@ -87,13 +92,17 @@ class CityActivity {
   });
 
   final String id;
-  final String activityType; // 'choice' | 'numeric_input'
+  final String activityType;
+  // One of: choice, drag_drop, spin, connect, numeric_input, tap_image, open_response
   final String prompt;
   final String promptAr;
-  final List<String> options; // for choice; empty for numeric_input
-  final dynamic correctAnswer; // int for correctIndex, num for numeric value
+  final List<String> options; // for choice; empty for other types
+  final dynamic correctAnswer; // int for correctIndex, num for numeric value, Map for drag_drop, List for tap_image/open_response
   final List<BilingualText> hints;
   final int xpReward;
+
+  /// Convenience accessor for the typed question kind.
+  QuestionType get questionType => QuestionType.fromString(activityType);
 }
 
 // ─── Checkpoint ────────────────────────────────────────────────────────────────
@@ -109,11 +118,15 @@ class CheckpointQuestion {
   });
 
   final String id;
-  final String type; // 'choice' | 'numeric_input'
+  final String type;
+  // One of: choice, drag_drop, spin, connect, numeric_input, tap_image, open_response
   final String prompt;
   final String promptAr;
   final dynamic correctAnswer;
   final List<String> options;
+
+  /// Convenience accessor for the typed question kind.
+  QuestionType get questionType => QuestionType.fromString(type);
 }
 
 // ─── Stage definitions ─────────────────────────────────────────────────────────

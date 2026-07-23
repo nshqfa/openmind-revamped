@@ -83,6 +83,33 @@ class _ActivityChoiceState extends State<ActivityChoice> {
             const SizedBox(height: 12),
             _hintCard(),
           ],
+          // Retry button
+          if (_isCorrect == false) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: OutlinedButton(
+                onPressed: () {
+                  setState(() {
+                    _selected = null;
+                    _isCorrect = null;
+                  });
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: MiddlePalette.retryYellowInk,
+                  side: BorderSide(color: MiddlePalette.retryYellow),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(Palette.radiusButton),
+                  ),
+                ),
+                child: const Text(
+                  'حاول مجدداً',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
         ],
       ),
