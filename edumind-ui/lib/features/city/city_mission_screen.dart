@@ -247,31 +247,37 @@ class _CityMissionScreenState extends State<CityMissionScreen> {
     switch (stage.type) {
       case 'scene':
         return SceneStage(
+          key: const ValueKey('stage_scene'),
           mission: widget.mission,
           onContinue: () => _advanceStage(_stageIndex + 1),
         );
       case 'discovery':
         return DiscoveryStage(
+          key: const ValueKey('stage_discovery'),
           mission: widget.mission,
           onContinue: () => _advanceStage(_stageIndex + 1),
         );
       case 'explanation':
         return ExplanationStage(
+          key: const ValueKey('stage_explanation'),
           mission: widget.mission,
           onContinue: () => _advanceStage(_stageIndex + 1),
         );
       case 'training':
         return TrainingStage(
+          key: const ValueKey('stage_training'),
           mission: widget.mission,
           onContinue: () => _advanceStage(_stageIndex + 1),
         );
       case 'application':
         return ApplicationStage(
+          key: const ValueKey('stage_application'),
           mission: widget.mission,
           onContinue: () => _advanceStage(_stageIndex + 1),
         );
       case 'verification':
         return VerificationStage(
+          key: const ValueKey('stage_verification'),
           mission: widget.mission,
           onComplete: _onComplete,
         );

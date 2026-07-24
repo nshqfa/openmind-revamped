@@ -121,7 +121,7 @@ class _ActivityNumericInputState extends State<ActivityNumericInput> {
               width: double.infinity,
               height: 48,
               child: ElevatedButton(
-                onPressed: _controller.text.isEmpty ? null : _submit,
+                onPressed: _submit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: widget.accent,
                   foregroundColor: Colors.white,
@@ -182,8 +182,12 @@ class _ActivityNumericInputState extends State<ActivityNumericInput> {
   }
 
   void _submit() {
+    if (_showResult) return; // guard against double-tap
     final input = double.tryParse(_controller.text);
     if (input == null) return;
+
+    // Dismiss keyboard
+    FocusScope.of(context).unfocus();
 
     final correct = (widget.activity.correctAnswer as num).toDouble();
     final isCorrect = (input - correct).abs() <= 0.5;
