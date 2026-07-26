@@ -13,39 +13,40 @@ datasource db {
 }
 
 model Student {
-  id                  String    @id @default(cuid())
-  name                String // nickname only — never a real-name field (minors)
-  gender              String? // 'm' | 'f' — Arabic grammar ONLY
-  grade               Int
-  language            String    @default("en")
-  color               String    @default("#58CC02")
-  interest            String? // elementary game archetype (primary stage)
-  learningContext     String? // middle-school context lens — legacy, fallback only
-  interests           String[]  @default([]) // onboarding interests (1-2, both stages) — primary AI-flavor signal
-  dailyGoal           Int       @default(3)
-  xp                  Int       @default(0)
-  streakCount         Int       @default(0)
-  streakLastPlayedAt  DateTime?
-  tokenHash           String    @unique
+  id                         String                      @id @default(cuid())
+  name                       String // nickname only — never a real-name field (minors)
+  gender                     String? // 'm' | 'f' — Arabic grammar ONLY
+  grade                      Int
+  language                   String                      @default("en")
+  color                      String                      @default("#58CC02")
+  interest                   String? // elementary game archetype (primary stage)
+  learningContext            String? // middle-school context lens — legacy, fallback only
+  interests                  String[]                    @default([]) // onboarding interests (1-2, both stages) — primary AI-flavor signal
+  dailyGoal                  Int                         @default(3)
+  xp                         Int                         @default(0)
+  streakCount                Int                         @default(0)
+  streakLastPlayedAt         DateTime?
+  tokenHash                  String                      @unique
   // Client-generated, persisted per device install — the idempotency key for
   // POST /students. Nullable: older rows (and any caller that doesn't send
   // one) never populate it, and Postgres unique indexes allow any number of
   // NULLs. A retry with a matching id reissues a token for the SAME row
   // instead of creating a duplicate account (see routes/students.ts).
-  installationId      String?   @unique
-  createdAt           DateTime  @default(now())
-  games               Game[]
-  xpEvents            XpEvent[]
-  streakEvents        StreakEvent[]
-  playSessions        PlaySession[]
- // pathProgress        StudentPathProgress[]
-  placementTests      PlacementTestSession[]
-  tutorMessages       TutorMessage[]
-  learnProgress       LearnProgress[]
-  learnEvidence       LearnEvidence[]
-    learnNodeProgress LearnNodeProgress[]
-  learnAttempts     LearnAttempt[]
+  installationId             String?                     @unique
+  createdAt                  DateTime                    @default(now())
+  games                      Game[]
+  xpEvents                   XpEvent[]
+  streakEvents               StreakEvent[]
+  playSessions               PlaySession[]
+  // pathProgress        StudentPathProgress[]
+  placementTests             PlacementTestSession[]
+  tutorMessages              TutorMessage[]
+  learnProgress              LearnProgress[]
+  learnEvidence              LearnEvidence[]
+  learnNodeProgress          LearnNodeProgress[]
+  learnAttempts              LearnAttempt[]
   learnCheckpointSubmissions LearnCheckpointSubmission[]
+  pathNodeStages             PathNodeStage[]
 }
 
 // Middle-school learning progress (grades 7-9) — a separate domain from
@@ -92,23 +93,23 @@ model LearnEvidence {
 }
 
 model Game {
-  id           String    @id @default(cuid())
+  id           String        @id @default(cuid())
   studentId    String
-  student      Student   @relation(fields: [studentId], references: [id])
+  student      Student       @relation(fields: [studentId], references: [id])
   gameType     String
   theme        String
   subject      String
   topic        String
   language     String
-  status       String    @default("generating") // generating | ready | failed
+  status       String        @default("generating") // generating | ready | failed
   error        String?
   spec         Json? // the GameSpec — NEVER assembled HTML
-  shellVersion String    @default("")
+  shellVersion String        @default("")
   thumbnailUrl String?
-  bestScore    Int       @default(0)
-  playCount    Int       @default(0)
+  bestScore    Int           @default(0)
+  playCount    Int           @default(0)
   lastPlayedAt DateTime?
-  createdAt    DateTime  @default(now())
+  createdAt    DateTime      @default(now())
   deletedAt    DateTime? // soft delete
   playSessions PlaySession[]
 
@@ -171,24 +172,23 @@ model SpecCache {
   expiresAt DateTime
 }
 
-
 model Grade {
   id        String    @id @default(cuid())
-  name      String    // e.g. "Grade 1", "First Grade"
+  name      String // e.g. "Grade 1", "First Grade"
   index     Int       @unique // 1..6 — matches Student.grade
   subjects  Subject[]
   createdAt DateTime  @default(now())
 }
 
 model Subject {
-  id            String        @id @default(cuid())
+  id            String         @id @default(cuid())
   title         String
   content       String
   orderIndex    Int
   gradeId       String
-  grade         Grade         @relation(fields: [gradeId], references: [id])
+  grade         Grade          @relation(fields: [gradeId], references: [id])
   learningPaths LearningPath[]
-  createdAt     DateTime      @default(now())
+  createdAt     DateTime       @default(now())
 
   @@index([gradeId, orderIndex])
 }
@@ -207,24 +207,24 @@ model LearningPath {
 }
 
 model PathNode {
-  id              String   @id @default(cuid())
-  title           String
-  titleAr         String?
-  subject         String
-  topic           String
-  orderIndex      Int
-  xpReward        Int
-  depth           Int      @default(0)
-  learningPathId  String
-  learningPath    LearningPath @relation(fields: [learningPathId], references: [id])
+  id             String       @id @default(cuid())
+  title          String
+  titleAr        String?
+  subject        String
+  topic          String
+  orderIndex     Int
+  xpReward       Int
+  depth          Int          @default(0)
+  learningPathId String
+  learningPath   LearningPath @relation(fields: [learningPathId], references: [id])
 
   // ── NEW: Unshakable City fields ──
-  conceptKey      String?   // e.g. "parallel_lines", "angles", "parallelogram"
-  cityMission     String?   // e.g. "streets_no_collision", "smart_intersection"
-  nodeStatus      String   @default("soon")  // "available" | "in_progress" | "completed" | "soon"
-  sceneJson       Json?     // Opening real-world scenario {text, textAr, image}
-  discoveryJson   Json?     // Interactive discovery instructions
-  explanationJson Json?     // Short visual explanation {sentence, sentenceAr, diagramRef}
+  conceptKey      String? // e.g. "parallel_lines", "angles", "parallelogram"
+  cityMission     String? // e.g. "streets_no_collision", "smart_intersection"
+  nodeStatus      String  @default("soon") // "available" | "in_progress" | "completed" | "soon"
+  sceneJson       Json? // Opening real-world scenario {text, textAr, image}
+  discoveryJson   Json? // Interactive discovery instructions
+  explanationJson Json? // Short visual explanation {sentence, sentenceAr, diagramRef}
 
   // Relations
   stages          PathNodeStage[]
@@ -232,7 +232,7 @@ model PathNode {
   checkpoints     PathNodeCheckpoint[]
   studentProgress LearnNodeProgress[]
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([learningPathId, orderIndex])
 }
@@ -246,14 +246,14 @@ model PathNode {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Question {
-  id              String       @id @default(cuid())
-  learningPathId  String
-  learningPath    LearningPath @relation(fields: [learningPathId], references: [id])
-  type            String // choice | drag_drop | spin | connect
-  difficulty      String // easy | medium | hard
-  content         Json // type-specific payload (see Zod QuestionContent)
-  linkedNodeId    String? // optional: the PathNode this question tests (for precise placement)
-  createdAt       DateTime     @default(now())
+  id             String       @id @default(cuid())
+  learningPathId String
+  learningPath   LearningPath @relation(fields: [learningPathId], references: [id])
+  type           String // choice | drag_drop | spin | connect
+  difficulty     String // easy | medium | hard
+  content        Json // type-specific payload (see Zod QuestionContent)
+  linkedNodeId   String? // optional: the PathNode this question tests (for precise placement)
+  createdAt      DateTime     @default(now())
 
   @@index([learningPathId, difficulty])
 }
@@ -263,7 +263,7 @@ model PlacementTestSession {
   studentId         String
   student           Student   @relation(fields: [studentId], references: [id])
   learningPathId    String
-  theme             String    // bridge | road | map
+  theme             String // bridge | road | map
   status            String    @default("in_progress") // in_progress | completed | abandoned
   answers           Json      @default("[]") // [{ questionId, type, difficulty, correct, response, answeredAt }]
   currentDifficulty String    @default("medium")
@@ -274,132 +274,128 @@ model PlacementTestSession {
 
   @@index([studentId, learningPathId])
 }
+
 // ─── Unshakable City: PathNode Learning Engine ────────────────────────────────
 
 model PathNodeStage {
-  id          String   @id @default(cuid())
-  pathNodeId  String
-  pathNode    PathNode @relation(fields: [pathNodeId], references: [id], onDelete: Cascade)model PathNodeActivity {
   id                String   @id @default(cuid())
   pathNodeId        String
-  pathNode          PathNode @relation(fields: [pathNodeId], references: [id], onDelete: Cascade)model PathNodeCheckpoint {
-  id              String   @id @default(cuid())
-  pathNodeId      String
-  pathNode        PathNode @relation(fields: [pathNodeId], references: [id], onDelete: Cascade)model LearnNodeProgress {
-  id                String   @id @default(cuid())
-  studentId         String
-  student           Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  pathNodeId        String
-  pathNode          PathNode @relation(fields: [pathNodeId], references: [id], onDelete: Cascade)model LearnAttempt {
-  id              String   @id @default(cuid())
-  studentId       String
-  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  activityId      String
-  activity        PathNodeActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)model LearnCheckpointSubmission {
-  id              String   @id @default(cuid())
-  studentId       String
-  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  checkpointId    String
-  checkpoint      PathNodeCheckpoint @relation(fields: [checkpointId], references: [id], onDelete: Cascade)  currentDifficulty String    @default("intermediate")
+  activityId        String?
+  studentId         String?
+  checkpointId      String?
+  currentDifficulty String?  @default("intermediate")
+  orderIndex        Int      @default(0)
+  stageType         String
+  title             String
+  titleAr           String?
+  contentJson       Json
+
+  pathNode          PathNode @relation(fields: [pathNodeId], references: [id], onDelete: Cascade)
+  activity          PathNodeActivity? @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  student           Student?  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  checkpoint        PathNodeCheckpoint? @relation(fields: [checkpointId], references: [id], onDelete: Cascade)
+}
 
 model PathNodeActivity {
-  id                String   @id @default(cuid())
-  pathNodeId        String
-  pathNode          PathNode @relation(fields: [pathNodeId], references: [id])
-  stageId           String?
-  orderIndex        Int
-  activityType      String   // "angle_explorer" | "shape_compare" | "bridge_builder" | "area_tiles" | "choice" | "numeric_input" | "drag_drop"
-  prompt            String
-  promptAr          String?
-  dataJson          Json     // The activity's fixed data (angles, shapes, coordinates)
-  correctAnswerJson Json     // Server ground-truth — NEVER sent to client
-  correctionRulesJson Json?  // Fixed correction rules: tolerance, partial-credit, error patterns
-  hintsJson         Json?    // Array of 3 hints [{level, text, textAr}]
-  skillId           String?
-  xpReward          Int      @default(10)
-  createdAt         DateTime @default(now())
+  id                  String          @id @default(cuid())
+  pathNodeId          String
+  pathNode            PathNode        @relation(fields: [pathNodeId], references: [id], onDelete: Cascade)
+  stageId             String?
+  stages              PathNodeStage[]
+  orderIndex          Int
+  activityType        String // "angle_explorer" | "shape_compare" | "bridge_builder" | "area_tiles" | "choice" | "numeric_input" | "drag_drop"
+  prompt              String
+  promptAr            String?
+  dataJson            Json // The activity's fixed data (angles, shapes, coordinates)
+  correctAnswerJson   Json // Server ground-truth — NEVER sent to client
+  correctionRulesJson Json? // Fixed correction rules: tolerance, partial-credit, error patterns
+  hintsJson           Json? // Array of 3 hints [{level, text, textAr}]
+  skillId             String?
+  xpReward            Int             @default(10)
+  createdAt           DateTime        @default(now())
 
-  attempts          LearnAttempt[]
+  attempts LearnAttempt[]
 
   @@index([pathNodeId, orderIndex])
 }
 
 model PathNodeCheckpoint {
-  id              String   @id @default(cuid())
-  pathNodeId      String
-  pathNode        PathNode @relation(fields: [pathNodeId], references: [id])
-  orderIndex      Int      @default(0)
-  title           String
-  titleAr         String?
-  questionsJson   Json     // [{id, type, prompt, promptAr, correctAnswer, errorPatterns}]
-  passThreshold   Float    @default(0.7)
-  xpReward        Int      @default(50)
-  createdAt       DateTime @default(now())
+  id            String   @id @default(cuid())
+  pathNodeId    String
+  pathNode      PathNode @relation(fields: [pathNodeId], references: [id])
+  orderIndex    Int      @default(0)
+  title         String
+  titleAr       String?
+  questionsJson Json // [{id, type, prompt, promptAr, correctAnswer, errorPatterns}]
+  passThreshold Float    @default(0.7)
+  xpReward      Int      @default(50)
+  createdAt     DateTime @default(now())
 
-  submissions     LearnCheckpointSubmission[]
+  submissions LearnCheckpointSubmission[]
+  stages      PathNodeStage[]
 
   @@index([pathNodeId])
 }
 
 model LearnNodeProgress {
-  id                String   @id @default(cuid())
-  studentId         String
-  student           Student  @relation(fields: [studentId], references: [id])
-  pathNodeId        String
-  pathNode          PathNode @relation(fields: [pathNodeId], references: [id])
-  learningPathId    String
+  id             String   @id @default(cuid())
+  studentId      String
+  student        Student  @relation(fields: [studentId], references: [id])
+  pathNodeId     String
+  pathNode       PathNode @relation(fields: [pathNodeId], references: [id])
+  learningPathId String
 
-  currentStageIndex Int      @default(0)
-  status            String   @default("locked")  // "locked" | "available" | "in_progress" | "completed"
+  currentStageIndex Int       @default(0)
+  status            String    @default("locked") // "locked" | "available" | "in_progress" | "completed"
   checkpointScore   Float?
-  checkpointPassed  Boolean  @default(false)
+  checkpointPassed  Boolean   @default(false)
   completedAt       DateTime?
-  attemptsCount     Int      @default(0)
-  hintsUsed         Int      @default(0)
+  attemptsCount     Int       @default(0)
+  hintsUsed         Int       @default(0)
 
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([studentId, pathNodeId])
   @@index([studentId, learningPathId, status])
 }
 
 model LearnAttempt {
-  id              String   @id @default(cuid())
-  studentId       String
-  student         Student  @relation(fields: [studentId], references: [id])
-  activityId      String
-  activity        PathNodeActivity @relation(fields: [activityId], references: [id])
-  pathNodeId      String
+  id         String           @id @default(cuid())
+  studentId  String
+  student    Student          @relation(fields: [studentId], references: [id])
+  activityId String
+  activity   PathNodeActivity @relation(fields: [activityId], references: [id])
+  pathNodeId String
 
   attemptNumber   Int
   answerJson      Json
-  outcome         String   // "correct" | "partially_correct" | "incorrect"
+  outcome         String // "correct" | "partially_correct" | "incorrect"
   errorPattern    String?
-  hintsUsedBefore Int      @default(0)
+  hintsUsedBefore Int     @default(0)
   timeMs          Int?
-  recovered       Boolean  @default(false)
+  recovered       Boolean @default(false)
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([studentId, activityId, attemptNumber])
   @@index([studentId, pathNodeId])
 }
 
 model LearnCheckpointSubmission {
-  id              String   @id @default(cuid())
-  studentId       String
-  student         Student  @relation(fields: [studentId], references: [id])
-  checkpointId    String
-  checkpoint      PathNodeCheckpoint @relation(fields: [checkpointId], references: [id])
-  pathNodeId      String
+  id           String             @id @default(cuid())
+  studentId    String
+  student      Student            @relation(fields: [studentId], references: [id])
+  checkpointId String
+  checkpoint   PathNodeCheckpoint @relation(fields: [checkpointId], references: [id])
+  pathNodeId   String
 
-  answersJson     Json     // [{questionId, answer, correct}]
-  score           Float
-  passed          Boolean
-  attemptNumber   Int
+  answersJson   Json // [{questionId, answer, correct}]
+  score         Float
+  passed        Boolean
+  attemptNumber Int
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([studentId, checkpointId])
   @@index([studentId, pathNodeId])

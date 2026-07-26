@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'learn_catalog_api.dart';
 
 import '../../app_localizations.dart';
 import '../../core/middle_palette.dart';
@@ -58,11 +59,19 @@ class _JourneyScreenState extends State<JourneyScreen> {
     if (mounted) _load(sync: false);
   }
 
-  Future<void> _load({bool sync = true}) async {
-    final catalogs = await LearnCatalogLoader.catalogs(
-      language: Session.instance.language,
+Future<void> _load({bool sync = true}) async {
+    // Try fetching from the seeded database first
+    var catalogs = await LearnCatalogApiLoader.fetchFromDatabase(
       grade: Session.instance.grade,
+      language: Session.instance.language,
     );
+    // Fall back to bundled assets if the API returns nothing
+    if (catalogs.isEmpty) {
+      catalogs = await LearnCatalogLoader.catalogs(
+        language: Session.instance.language,
+        grade: Session.instance.grade,
+      );
+    }
     final store = await LearnProgressStore.load();
     final evidence = await LearnEvidenceStore.load();
     if (mounted) {

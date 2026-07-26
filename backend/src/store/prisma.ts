@@ -465,9 +465,24 @@ export async function createPrismaStore(): Promise<Store> {
     return (row as unknown as PathNodeCheckpointRow) ?? null;
   },
 
-  async createPathNodeStage(data: Omit<PathNodeStageRow, 'id' | 'createdAt'>) {
-    const row = await prisma.pathNodeStage.create({ data });
-    return row as unknown as PathNodeStageRow;
+    async createPathNodeStage(data: Omit<PathNodeStageRow, 'id' | 'createdAt'>) {
+    const row = await prisma.pathNodeStage.create({
+      data: {
+        pathNode: { connect: { id: data.pathNodeId } },
+        activity: data.activityId ? { connect: { id: data.activityId } } : undefined,
+        student: data.studentId ? { connect: { id: data.studentId } } : undefined,
+        checkpoint: data.checkpointId ? { connect: { id: data.checkpointId } } : undefined,
+        
+        stageType: data.stageType,
+        orderIndex: data.orderIndex,
+        title: data.title,
+        titleAr: data.titleAr,
+        contentJson: data.contentJson,
+        currentDifficulty: data.currentDifficulty,
+      }
+    });
+    return row;
+  
   },
 
   async createPathNodeActivity(data: Omit<PathNodeActivityRow, 'id' | 'createdAt'>) {

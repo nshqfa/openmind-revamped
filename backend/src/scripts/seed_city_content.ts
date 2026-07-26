@@ -21,7 +21,8 @@
  * Idempotent: skips if stages/activities/checkpoints already exist.
  */
 import 'dotenv/config';
-import { dirname, join, fileURLToPath } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createStore } from '../store/index.js';
 import type { Store } from '../store/types.js';
 

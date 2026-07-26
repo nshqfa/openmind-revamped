@@ -13,15 +13,9 @@ class ApiException implements Exception {
 }
 
 /// REST client for the EduMind backend (/api/v1).
-/// Base URL is configurable via --dart-define=API_BASE_URL and the in-app
-/// settings screen, so a phone can point at a laptop's LAN IP at runtime.
 class Api {
   static String get _base => Session.instance.baseUrl;
 
-  // Only send content-type when there's actually a body — Fastify rejects an
-  // empty body that carries `content-type: application/json`
-  // (FST_ERR_CTP_EMPTY_JSON_BODY), which bodyless POSTs like streak-check and
-  // retry would otherwise trip.
   static Map<String, String> _headers({bool auth = true, bool withBody = false}) => {
         if (withBody) 'content-type': 'application/json',
         if (auth && Session.instance.token != null)
@@ -39,9 +33,9 @@ class Api {
     return body;
   }
 
-  static Future<dynamic> get(String path, {bool auth = true}) async =>
+  static Future<dynamic> get(String path) async =>
       _decode(await http
-          .get(Uri.parse('$_base$path'), headers: _headers(auth: auth))
+          .get(Uri.parse('$_base$path'), headers: _headers())
           .timeout(const Duration(seconds: 20)));
 
   static Future<dynamic> post(String path, [Object? body, bool auth = true]) async =>
@@ -64,7 +58,6 @@ class Api {
 
   // ---- typed helpers -----------------------------------------------------
 
-  /// The settings screen's Test Connection button.
   static Future<Map<String, dynamic>?> health() async {
     try {
       final res = await http
@@ -80,18 +73,15 @@ class Api {
   static Future<Map<String, dynamic>> createStudent(Map<String, dynamic> body) async =>
       (await post('/api/v1/students', body, false)) as Map<String, dynamic>;
 
-  /// Trusted student view (grade, stage, learningContext, …).
   static Future<Map<String, dynamic>> me() async =>
       (await get('/api/v1/students/me')) as Map<String, dynamic>;
 
   static Future<Map<String, dynamic>> patchMe(Map<String, dynamic> body) async =>
       (await patch('/api/v1/students/me', body)) as Map<String, dynamic>;
 
-  /// Middle-school learning progress — completed experiences on the server.
   static Future<Map<String, dynamic>> learnProgress() async =>
       (await get('/api/v1/learn/progress')) as Map<String, dynamic>;
 
-  /// Idempotent completion upsert for one experience.
   static Future<Map<String, dynamic>> putLearnProgress(String pathId, String experienceId) async =>
       (await _decode(await http
           .put(Uri.parse('$_base/api/v1/learn/progress'),
@@ -99,14 +89,6 @@ class Api {
               body: jsonEncode({'pathId': pathId, 'experienceId': experienceId}))
           .timeout(const Duration(seconds: 20)))) as Map<String, dynamic>;
 
-  /// Server-side verification for a lesson-experience widget's attempt — the
-  /// same ToolDescriptor.verifyResult the tutor trusts, reused so an authored
-  /// lesson challenge is never graded by client code alone. Returns
-  /// {verdict, errorPattern?}: verdict is 'correct' | 'partially_correct' |
-  /// 'incorrect' | 'explored' | 'invalid' | 'unverifiable'; errorPattern is
-  /// the tool's diagnosis of a wrong answer when it has one. When [evidence]
-  /// (skill/representation/position context) is supplied, the server also
-  /// records the graded attempt as an evidence row.
   static Future<Map<String, dynamic>> verifyTool(
     String toolId,
     Map<String, dynamic> data,
@@ -119,12 +101,9 @@ class Api {
         if (evidence != null) 'evidence': evidence,
       })) as Map<String, dynamic>;
 
-  /// The learner's evidence log on the server (append-only, ids are
-  /// client-generated — see LearnEvidenceStore).
   static Future<Map<String, dynamic>> learnEvidence() async =>
       (await get('/api/v1/learn/evidence')) as Map<String, dynamic>;
 
-  /// Idempotent batch append of evidence events (deduped by event id).
   static Future<Map<String, dynamic>> postLearnEvidence(
           List<Map<String, dynamic>> events) async =>
       (await post('/api/v1/learn/evidence', {'events': events}))
@@ -133,7 +112,6 @@ class Api {
   static Future<Map<String, dynamic>> createGame(Map<String, dynamic> body) async =>
       (await post('/api/v1/games', body)) as Map<String, dynamic>;
 
-  /// Ask Hudhud: question + optional learning context → structured reply.
   static Future<Map<String, dynamic>> askTutor(Map<String, dynamic> body) async =>
       (await post('/api/v1/tutor/messages', body)) as Map<String, dynamic>;
 
@@ -143,7 +121,6 @@ class Api {
   static Future<Map<String, dynamic>> gameStatus(String id) async =>
       (await get('/api/v1/games/$id')) as Map<String, dynamic>;
 
-  /// Polls until the game is ready; returns the GameSpec. Throws on failure.
   static Future<Map<String, dynamic>> waitForSpec(String id,
       {Duration interval = const Duration(seconds: 2), Duration timeout = const Duration(seconds: 90)}) async {
     final deadline = DateTime.now().add(timeout);
@@ -158,5 +135,21 @@ class Api {
       await Future<void>.delayed(interval);
     }
     throw ApiException(408, 'TIMEOUT', 'generation timed out');
+  }
+
+  // ---- curriculum helpers ------------------------------------------------
+
+  static Future<List<Map<String, dynamic>>> getGrades() async {
+    final res = await get('/api/v1/curriculum/grades') as Map;
+    return (res['items'] as List).cast<Map<String, dynamic>>();
+  }
+
+  static Future<List<Map<String, dynamic>>> getSubjectsByGrade(String gradeId) async {
+    final res = await get('/api/v1/curriculum/grades/$gradeId/subjects') as Map;
+    return (res['items'] as List).cast<Map<String, dynamic>>();
+  }
+
+  static Future<Map<String, dynamic>> getLearningPathWithNodes(String pathId) async {
+    return await get('/api/v1/curriculum/learning-paths/$pathId?withNodes=true') as Map<String, dynamic>;
   }
 }

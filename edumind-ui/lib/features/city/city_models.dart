@@ -78,34 +78,35 @@ class CitySkill {
 }
 
 // ─── Activity ──────────────────────────────────────────────────────────────────
-
 class CityActivity {
   CityActivity({
     required this.id,
     required this.activityType,
     required this.prompt,
     required this.promptAr,
-    required this.options,
+    this.options = const [],
     required this.correctAnswer,
+    this.dataJson,
+    this.correctionRulesJson,
     required this.hints,
     required this.xpReward,
+    this.skillId,
   });
 
   final String id;
   final String activityType;
-  // One of: choice, drag_drop, spin, connect, numeric_input, tap_image, open_response
   final String prompt;
   final String promptAr;
-  final List<String> options; // for choice; empty for other types
-  final dynamic correctAnswer; // int for correctIndex, num for numeric value, Map for drag_drop, List for tap_image/open_response
+  final List<String> options;
+  final dynamic correctAnswer;
+  final Map<String, dynamic>? dataJson;
+  final Map<String, dynamic>? correctionRulesJson;
   final List<BilingualText> hints;
   final int xpReward;
+  final String? skillId;
 
-  /// Convenience accessor for the typed question kind.
   QuestionType get questionType => QuestionType.fromString(activityType);
 }
-
-// ─── Checkpoint ────────────────────────────────────────────────────────────────
 
 class CheckpointQuestion {
   CheckpointQuestion({
@@ -114,18 +115,18 @@ class CheckpointQuestion {
     required this.prompt,
     required this.promptAr,
     required this.correctAnswer,
-    required this.options,
+    this.options = const [],
+    this.errorPatterns,
   });
 
   final String id;
   final String type;
-  // One of: choice, drag_drop, spin, connect, numeric_input, tap_image, open_response
   final String prompt;
   final String promptAr;
   final dynamic correctAnswer;
   final List<String> options;
+  final List<Map<String, dynamic>>? errorPatterns;
 
-  /// Convenience accessor for the typed question kind.
   QuestionType get questionType => QuestionType.fromString(type);
 }
 

@@ -228,6 +228,10 @@ export interface TutorMessageRow {
 export interface PathNodeStageRow {
   id: string;
   pathNodeId: string;
+  activityId? : string;        
+  studentId? : string;         
+  checkpointId? : string;      
+  currentDifficulty? : string; 
   stageType: string;
   orderIndex: number;
   title: string;
