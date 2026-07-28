@@ -5,14 +5,14 @@ import 'package:flutter/material.dart';
 
 import '../../../core/middle_palette.dart';
 import '../../../core/palette.dart';
+import '../../../shared/widgets/activities/activity_choice.dart';
+import '../../../shared/widgets/activities/activity_drag_drop.dart';
+import '../../../shared/widgets/activities/activity_spin.dart';
+import '../../../shared/widgets/activities/activity_connect.dart';
+import '../../../shared/widgets/activities/activity_tap_image.dart';
+import '../../../shared/widgets/activities/activity_open_response.dart';
+import '../../../shared/widgets/activities/activity_numeric_input.dart';
 import '../city_models.dart';
-import '../widgets/activity_choice.dart';
-import '../widgets/activity_numeric_input.dart';
-import '../widgets/activity_drag_drop.dart';
-import '../widgets/activity_spin.dart';
-import '../widgets/activity_connect.dart';
-import '../widgets/activity_tap_image.dart';
-import '../widgets/activity_open_response.dart';
 import '../city_progress_store.dart';
 
 class ApplicationStage extends StatefulWidget {
@@ -75,46 +75,47 @@ class _ApplicationStageState extends State<ApplicationStage> {
     );
   }
 
-  /// Routes to the correct activity widget based on activity type.
+  /// Routes to the correct shared activity widget based on activity type.
   Widget _buildActivityWidget(CityActivity activity, Color accent) {
+    final qd = activity.toQuestionData();
     return switch (activity.activityType) {
       'choice' => ActivityChoice(
-          activity: activity,
+          question: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),
       'numeric_input' => ActivityNumericInput(
-          activity: activity,
+          question: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),
       'drag_drop' => ActivityDragDrop(
-          activity: activity,
+          question: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),
       'spin' => ActivitySpin(
-          activity: activity,
+          question: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),
       'connect' => ActivityConnect(
-          activity: activity,
+          question: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),
       'tap_image' => ActivityTapImage(
-          activity: activity,
+          question: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),
       'open_response' => ActivityOpenResponse(
-          activity: activity,
+          question: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),
       _ => ActivityChoice(
-          activity: activity,
+          question: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),

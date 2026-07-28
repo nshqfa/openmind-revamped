@@ -3,29 +3,17 @@
 /// landing on one. Correct → green feedback + XP. Wrong → yellow + hint + retry.
 library;
 
-import 'dart:async';
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-
-import '../../../../core/middle_palette.dart';
-import '../../../../core/palette.dart';
 import '../city_models.dart';
+import '../../../shared/widgets/activities/activity_spin.dart' as shared;
 
-class ActivitySpin extends StatefulWidget {
-  const ActivitySpin({
-    super.key,
-    required this.activity,
-    required this.accent,
-    required this.onCorrect,
-  });
-
+class ActivitySpin extends StatelessWidget {
+  const ActivitySpin({super.key, required this.activity, required this.accent, required this.onCorrect});
   final CityActivity activity;
   final Color accent;
   final ValueChanged<int> onCorrect;
-
   @override
-  State<ActivitySpin> createState() => _ActivitySpinState();
+  Widget build(BuildContext context) => shared.ActivitySpin(question: activity.toQuestionData(), accent: accent, onCorrect: onCorrect);
 }
 
 class _ActivitySpinState extends State<ActivitySpin> {

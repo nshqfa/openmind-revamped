@@ -1,28 +1,20 @@
 /// Open-response activity widget — shows a prompt and multi-line text input.
 /// Uses keyword-based matching against acceptable answers since we can't
 /// do AI evaluation on the client. Progressive hints reveal the answer.
+/// Thin wrapper that delegates to the shared [ActivityOpenResponse].
 library;
 
 import 'package:flutter/material.dart';
-
-import '../../../../core/middle_palette.dart';
-import '../../../../core/palette.dart';
 import '../city_models.dart';
+import '../../../shared/widgets/activities/activity_open_response.dart' as shared;
 
-class ActivityOpenResponse extends StatefulWidget {
-  const ActivityOpenResponse({
-    super.key,
-    required this.activity,
-    required this.accent,
-    required this.onCorrect,
-  });
-
+class ActivityOpenResponse extends StatelessWidget {
+  const ActivityOpenResponse({super.key, required this.activity, required this.accent, required this.onCorrect});
   final CityActivity activity;
   final Color accent;
   final ValueChanged<int> onCorrect;
-
   @override
-  State<ActivityOpenResponse> createState() => _ActivityOpenResponseState();
+  Widget build(BuildContext context) => shared.ActivityOpenResponse(question: activity.toQuestionData(), accent: accent, onCorrect: onCorrect);
 }
 
 class _ActivityOpenResponseState extends State<ActivityOpenResponse> {

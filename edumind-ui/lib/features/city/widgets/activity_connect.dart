@@ -7,25 +7,16 @@
 library;
 
 import 'package:flutter/material.dart';
-
-import '../../../../core/middle_palette.dart';
-import '../../../../core/palette.dart';
 import '../city_models.dart';
+import '../../../shared/widgets/activities/activity_connect.dart' as shared;
 
-class ActivityConnect extends StatefulWidget {
-  const ActivityConnect({
-    super.key,
-    required this.activity,
-    required this.accent,
-    required this.onCorrect,
-  });
-
+class ActivityConnect extends StatelessWidget {
+  const ActivityConnect({super.key, required this.activity, required this.accent, required this.onCorrect});
   final CityActivity activity;
   final Color accent;
   final ValueChanged<int> onCorrect;
-
   @override
-  State<ActivityConnect> createState() => _ActivityConnectState();
+  Widget build(BuildContext context) => shared.ActivityConnect(question: activity.toQuestionData(), accent: accent, onCorrect: onCorrect);
 }
 
 class _ActivityConnectState extends State<ActivityConnect> {

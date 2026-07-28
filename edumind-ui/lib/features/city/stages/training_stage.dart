@@ -6,14 +6,14 @@ import 'package:flutter/material.dart';
 
 import '../../../core/middle_palette.dart';
 import '../../../core/palette.dart';
+import '../../../shared/widgets/activities/activity_choice.dart';
+import '../../../shared/widgets/activities/activity_drag_drop.dart';
+import '../../../shared/widgets/activities/activity_spin.dart';
+import '../../../shared/widgets/activities/activity_connect.dart';
+import '../../../shared/widgets/activities/activity_tap_image.dart';
+import '../../../shared/widgets/activities/activity_open_response.dart';
+import '../../../shared/widgets/activities/activity_numeric_input.dart';
 import '../city_models.dart';
-import '../widgets/activity_choice.dart';
-import '../widgets/activity_numeric_input.dart';
-import '../widgets/activity_drag_drop.dart';
-import '../widgets/activity_spin.dart';
-import '../widgets/activity_connect.dart';
-import '../widgets/activity_tap_image.dart';
-import '../widgets/activity_open_response.dart';
 import '../city_progress_store.dart';
 
 class TrainingStage extends StatefulWidget {
@@ -37,7 +37,6 @@ class _TrainingStageState extends State<TrainingStage> {
   Widget build(BuildContext context) {
     if (_allDone) return _completionView();
     if (_currentActivity >= _activities.length) {
-      // Should not happen, but guard
       return const SizedBox();
     }
     return _activityView();
@@ -105,55 +104,56 @@ class _TrainingStageState extends State<TrainingStage> {
     );
   }
 
-  /// Routes to the correct activity widget based on [activity.activityType].
+  /// Routes to the correct shared activity widget based on [activity.activityType].
   Widget _buildActivityWidget(CityActivity activity, Color accent) {
     final key = ValueKey('activity_$_currentActivity');
+    final qd = activity.toQuestionData();
     return switch (activity.activityType) {
       'choice' => ActivityChoice(
           key: key,
-          activity: activity,
+          question: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),
       'numeric_input' => ActivityNumericInput(
           key: key,
-          activity: activity,
+          question: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),
       'drag_drop' => ActivityDragDrop(
           key: key,
-          activity: activity,
+          question: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),
       'spin' => ActivitySpin(
           key: key,
-          activity: activity,
+          question: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),
       'connect' => ActivityConnect(
           key: key,
-          activity: activity,
+          question: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),
       'tap_image' => ActivityTapImage(
           key: key,
-          activity: activity,
+          question: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),
       'open_response' => ActivityOpenResponse(
           key: key,
-          activity: activity,
+          question: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),
       _ => ActivityChoice(
           key: key,
-          activity: activity,
+          question: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),

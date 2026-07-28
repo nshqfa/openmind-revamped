@@ -10,16 +10,12 @@ import '../../../../core/palette.dart';
 import '../city_models.dart';
 
 class ActivityDragDrop extends StatefulWidget {
-  const ActivityDragDrop({
-    super.key,
-    required this.activity,
-    required this.accent,
-    required this.onCorrect,
-  });
-
+  const ActivityDragDrop({super.key, required this.activity, required this.accent, required this.onCorrect});
   final CityActivity activity;
   final Color accent;
   final ValueChanged<int> onCorrect;
+  @override
+  Widget build(BuildContext context) => shared.ActivityDragDrop(question: activity.toQuestionData(), accent: accent, onCorrect: onCorrect);
 
   @override
   State<ActivityDragDrop> createState() => _ActivityDragDropState();

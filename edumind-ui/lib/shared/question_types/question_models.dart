@@ -240,7 +240,8 @@ class QuestionData {
 
   /// Parse from a backend JSON payload (used by city seed data, placement
   /// test questions, checkpoint questions, etc.).
-  factory QuestionData.fromJson(Map<String, dynamic> m) {
+
+factory QuestionData.fromJson(Map<String, dynamic> m) {
     final typeStr = m['type'] as String? ?? 'choice';
     final type = QuestionType.fromString(typeStr);
 
@@ -259,18 +260,40 @@ class QuestionData {
       connectData = ConnectData.fromMap(m);
     } else if (type == QuestionType.tapImage && m.containsKey('regions')) {
       tapImageData = TapImageData.fromMap(m);
-    } else if (type == QuestionType.openResponse && m.containsKey('acceptableAnswers')) {
-      openResponseData = OpenResponseData.fromMap(m);
     }
 
-    // Parse hints
+    // Open-response: acceptable answers come from correctAnswer (list) or acceptableAnswers key.
+    if (type == QuestionType.openResponse) {
+      final answers = m['acceptableAnswers'] ??
+          (m['correctAnswer'] is List ? m['correctAnswer'] : null);
+      if (answers is List && answers.isNotEmpty) {
+        openResponseData = OpenResponseData(
+          acceptableAnswers: answers.map((a) => a as String).toList(),
+        );
+      }
+    }
+
+    // Parse hints — supports both `hintsJson` (list of maps) and `hints` (list of maps).
     final hints = <BilingualHint>[];
-    if (m['hintsJson'] != null) {
-      for (final h in (m['hintsJson'] as List)) {
+    final rawHints = m['hintsJson'] ?? m['hints'];
+    if (rawHints != null) {
+      for (final h in (rawHints as List)) {
+        final map = h as Map;
         hints.add(BilingualHint(
-          text: (h as Map)['text'] as String? ?? '',
-          textAr: (h)['textAr'] as String? ?? '',
+          text: map['text'] as String? ?? map['en'] as String? ?? '',
+          textAr: map['textAr'] as String? ?? map['ar'] as String? ?? '',
         ));
+      }
+    }
+
+    // Numeric tolerance from correctionRulesJson or acceptableVariance.
+    double tolerance = 0.5;
+    if (m['acceptableVariance'] is num) {
+      tolerance = (m['acceptableVariance'] as num).toDouble();
+    } else if (m['correctionRulesJson'] is Map) {
+      final rules = m['correctionRulesJson'] as Map;
+      if (rules['tolerance'] is num) {
+        tolerance = (rules['tolerance'] as num).toDouble();
       }
     }
 
@@ -287,12 +310,58 @@ class QuestionData {
       connectData: connectData,
       tapImageData: tapImageData,
       openResponseData: openResponseData,
-      numericTolerance: (m['acceptableVariance'] is num)
-          ? (m['acceptableVariance'] as num).toDouble()
-          : 0.5,
+      numericTolerance: tolerance,
       hints: hints,
       xpReward: (m['xpReward'] as num?)?.toInt() ?? 10,
     );
+  }
+
+  /// Build from a CityActivity's raw fields.
+  ///
+  /// This avoids coupling shared/ to the city feature by accepting plain
+  /// Dart types. The caller (CityActivity.toQuestionData) assembles the map.
+  ///
+  /// [activityType] — e.g. 'choice', 'drag_drop'
+  /// [prompt] / [promptAr] — bilingual prompt
+  /// [options] — flat option strings
+  /// [correctAnswer] — type-correct answer (int, List, Map, …)
+  /// [dataJson] — structured payload (items/slots, segments, regions, etc.)
+  /// [hintsJson] — list of `{text, textAr}` maps
+  /// [correctionRulesJson] — optional rules (e.g. `{'tolerance': 0}`)
+  factory QuestionData.fromCityActivity({
+    required String activityType,
+    required String prompt,
+    required String promptAr,
+    required List<String> options,
+    required dynamic correctAnswer,
+    Map<String, dynamic>? dataJson,
+    List<Map<String, String>>? hintsJson,
+    Map<String, dynamic>? correctionRulesJson,
+    int xpReward = 10,
+  }) {
+    // Merge CityActivity fields with dataJson so fromJson can pick up
+    // structured keys (items, slots, wheelSegments, leftItems, regions…).
+    final merged = <String, dynamic>{
+      'type': activityType,
+      'prompt': prompt,
+      'promptAr': promptAr,
+      'options': options,
+      'correctAnswer': correctAnswer,
+      'xpReward': xpReward,
+    };
+
+    if (dataJson != null) merged.addAll(dataJson);
+    if (hintsJson != null) merged['hints'] = hintsJson;
+    if (correctionRulesJson != null) {
+      merged['correctionRulesJson'] = correctionRulesJson;
+    }
+
+    // For choice, expose correctIndex directly.
+    if (activityType == 'choice' && correctAnswer is int) {
+      merged['correctIndex'] = correctAnswer;
+    }
+
+    return QuestionData.fromJson(merged);
   }
 }
 

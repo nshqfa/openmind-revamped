@@ -5,25 +5,16 @@
 library;
 
 import 'package:flutter/material.dart';
-
-import '../../../../core/middle_palette.dart';
-import '../../../../core/palette.dart';
 import '../city_models.dart';
+import '../../../shared/widgets/activities/activity_tap_image.dart' as shared;
 
-class ActivityTapImage extends StatefulWidget {
-  const ActivityTapImage({
-    super.key,
-    required this.activity,
-    required this.accent,
-    required this.onCorrect,
-  });
-
+class ActivityTapImage extends StatelessWidget {
+  const ActivityTapImage({super.key, required this.activity, required this.accent, required this.onCorrect});
   final CityActivity activity;
   final Color accent;
   final ValueChanged<int> onCorrect;
-
   @override
-  State<ActivityTapImage> createState() => _ActivityTapImageState();
+  Widget build(BuildContext context) => shared.ActivityTapImage(question: activity.toQuestionData(), accent: accent, onCorrect: onCorrect);
 }
 
 class _ActivityTapImageState extends State<ActivityTapImage> {

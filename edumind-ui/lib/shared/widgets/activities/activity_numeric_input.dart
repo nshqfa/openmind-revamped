@@ -1,18 +1,27 @@
-/// Numeric input activity widget — shows a prompt and number input field.
-/// Checks the answer server-style (with tolerance), shows feedback and hints.
+/// Shared numeric input question widget — accepts [QuestionData].
+/// Checks the answer with configurable tolerance from QuestionData.numericTolerance.
 library;
 
 import 'package:flutter/material.dart';
-import '../city_models.dart';
-import '../../../shared/widgets/activities/activity_numeric_input.dart' as shared;
 
-class ActivityNumericInput extends StatelessWidget {
-  const ActivityNumericInput({super.key, required this.activity, required this.accent, required this.onCorrect});
-  final CityActivity activity;
+import '../../../core/middle_palette.dart';
+import '../../../core/palette.dart';
+import '../../question_types/question_models.dart';
+
+class ActivityNumericInput extends StatefulWidget {
+  const ActivityNumericInput({
+    super.key,
+    required this.question,
+    required this.accent,
+    required this.onCorrect,
+  });
+
+  final QuestionData question;
   final Color accent;
   final ValueChanged<int> onCorrect;
+
   @override
-  Widget build(BuildContext context) => shared.ActivityNumericInput(question: activity.toQuestionData(), accent: accent, onCorrect: onCorrect);
+  State<ActivityNumericInput> createState() => _ActivityNumericInputState();
 }
 
 class _ActivityNumericInputState extends State<ActivityNumericInput> {
@@ -34,41 +43,8 @@ class _ActivityNumericInputState extends State<ActivityNumericInput> {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(
         children: [
-          // Prompt
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: MiddlePalette.card,
-              border: Border.all(color: MiddlePalette.outline),
-              borderRadius: BorderRadius.circular(Palette.radiusCard),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.activity.promptAr,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    height: 1.7,
-                    fontWeight: FontWeight.w600,
-                    color: MiddlePalette.blueInk,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  widget.activity.prompt,
-                  style: TextStyle(
-                    fontSize: 13,
-                    height: 1.5,
-                    color: MiddlePalette.body,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          _promptCard(),
           const SizedBox(height: 20),
-          // Input field
           TextField(
             controller: _controller,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -106,7 +82,6 @@ class _ActivityNumericInputState extends State<ActivityNumericInput> {
             ),
           ),
           const SizedBox(height: 16),
-          // Submit button
           if (!_showResult)
             SizedBox(
               width: double.infinity,
@@ -128,43 +103,17 @@ class _ActivityNumericInputState extends State<ActivityNumericInput> {
                 ),
               ),
             ),
-          // Feedback
           if (_showResult) ...[
             const SizedBox(height: 16),
             _feedbackCard(),
           ],
-          // Hint
           if (_showResult && !_isCorrect! && _hintIndex >= 0) ...[
             const SizedBox(height: 12),
             _hintCard(),
           ],
-          // Retry button
           if (_showResult && !_isCorrect!) ...[
             const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              height: 44,
-              child: OutlinedButton(
-                onPressed: () {
-                  setState(() {
-                    _showResult = false;
-                    _isCorrect = null;
-                    _controller.clear();
-                  });
-                },
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: MiddlePalette.retryYellowInk,
-                  side: BorderSide(color: MiddlePalette.retryYellow),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(Palette.radiusButton),
-                  ),
-                ),
-                child: const Text(
-                  'حاول مجدداً',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                ),
-              ),
-            ),
+            _retryButton(),
           ],
           const SizedBox(height: 16),
         ],
@@ -173,15 +122,15 @@ class _ActivityNumericInputState extends State<ActivityNumericInput> {
   }
 
   void _submit() {
-    if (_showResult) return; // guard against double-tap
+    if (_showResult) return;
     final input = double.tryParse(_controller.text);
     if (input == null) return;
-
-    // Dismiss keyboard
     FocusScope.of(context).unfocus();
 
-    final correct = (widget.activity.correctAnswer as num).toDouble();
-    final isCorrect = (input - correct).abs() <= 0.5;
+    final target = (widget.question.correctAnswer as num?)?.toDouble();
+    if (target == null) return;
+
+    final isCorrect = (input - target).abs() <= widget.question.numericTolerance;
 
     setState(() {
       _attemptCount++;
@@ -191,13 +140,50 @@ class _ActivityNumericInputState extends State<ActivityNumericInput> {
 
     if (isCorrect) {
       final multiplier = _attemptCount <= 1 ? 1.0 : _attemptCount == 2 ? 0.7 : 0.5;
-      final xp = (widget.activity.xpReward * multiplier).round();
+      final xp = (widget.question.xpReward * multiplier).round();
       Future.delayed(const Duration(milliseconds: 800), () {
         widget.onCorrect(xp);
       });
     } else {
-      _hintIndex = (_attemptCount - 1).clamp(0, widget.activity.hints.length - 1);
+      _hintIndex = (_attemptCount - 1).clamp(0, widget.question.hints.length - 1);
     }
+  }
+
+  Widget _promptCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: MiddlePalette.card,
+        border: Border.all(color: MiddlePalette.outline),
+        borderRadius: BorderRadius.circular(Palette.radiusCard),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            widget.question.promptAr,
+            style: const TextStyle(
+              fontSize: 16,
+              height: 1.7,
+              fontWeight: FontWeight.w600,
+              color: MiddlePalette.blueInk,
+            ),
+          ),
+          if (widget.question.prompt.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              widget.question.prompt,
+              style: const TextStyle(
+                fontSize: 13,
+                height: 1.5,
+                color: MiddlePalette.body,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   Widget _feedbackCard() {
@@ -225,38 +211,38 @@ class _ActivityNumericInputState extends State<ActivityNumericInput> {
           ],
         ),
       );
-    } else {
-      return Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: MiddlePalette.retryYellowSoft,
-          borderRadius: BorderRadius.circular(Palette.radiusButton),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.refresh_rounded, size: 20, color: MiddlePalette.retryYellowInk),
-            const SizedBox(width: 8),
-            const Expanded(
-              child: Text(
-                'ليس تماماً — حاول مرة أخرى!',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: MiddlePalette.retryYellowInk,
-                ),
+    }
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: MiddlePalette.retryYellowSoft,
+        borderRadius: BorderRadius.circular(Palette.radiusButton),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.refresh_rounded, size: 20, color: MiddlePalette.retryYellowInk),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text(
+              'ليس تماماً — حاول مرة أخرى!',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: MiddlePalette.retryYellowInk,
               ),
+            ),
             ),
           ],
         ),
-      );
-    }
+      ),
+    );
   }
 
   Widget _hintCard() {
-    if (_hintIndex < 0 || _hintIndex >= widget.activity.hints.length) {
+    if (_hintIndex < 0 || _hintIndex >= widget.question.hints.length) {
       return const SizedBox();
     }
-    final hint = widget.activity.hints[_hintIndex];
+    final hint = widget.question.hints[_hintIndex];
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -281,8 +267,8 @@ class _ActivityNumericInputState extends State<ActivityNumericInput> {
                   ),
                 ),
                 Text(
-                  hint.ar,
-                  style: TextStyle(
+                  hint.textAr.isNotEmpty ? hint.textAr : hint.text,
+                  style: const TextStyle(
                     fontSize: 13,
                     height: 1.5,
                     color: MiddlePalette.blueInk,
@@ -292,6 +278,33 @@ class _ActivityNumericInputState extends State<ActivityNumericInput> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _retryButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 44,
+      child: OutlinedButton(
+        onPressed: () {
+          setState(() {
+            _showResult = false;
+            _isCorrect = null;
+            _controller.clear();
+          });
+        },
+        style: OutlinedButton.styleFrom(
+          foregroundColor: MiddlePalette.retryYellowInk,
+          side: BorderSide(color: MiddlePalette.retryYellow),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(Palette.radiusButton),
+          ),
+        ),
+        child: const Text(
+          'حاول مجدداً',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+        ),
       ),
     );
   }

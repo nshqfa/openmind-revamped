@@ -10,7 +10,9 @@ library;
 
 import 'dart:convert';
 
-import '../../shared/question_types/question_models.dart' show QuestionType;
+// import '../../shared/question_types/question_models.dart' show QuestionType;
+import '../../shared/question_types/question_models.dart' show QuestionType, QuestionData, BilingualHint, DragDropData, SpinData, ConnectData, TapImageData, OpenResponseData;
+import '../../shared/question_types/question_models.dart' show QuestionType, QuestionData;
 
 // ─── Mission ──────────────────────────────────────────────────────────────────
 
@@ -106,7 +108,84 @@ class CityActivity {
   final String? skillId;
 
   QuestionType get questionType => QuestionType.fromString(activityType);
+
 }
+
+/// Convert this CityActivity to the shared [QuestionData] model.
+  /// This properly parses [dataJson] for structured types (drag_drop, spin,
+  /// connect, tap_image, open_response) and flattens hints.
+  QuestionData toQuestionData() {
+  
+
+    final type = QuestionType.fromString(activityType);
+    final data = dataJson ?? <String, dynamic>{};
+
+    DragDropData? dragDropData;
+    SpinData? spinData;
+    ConnectData? connectData;
+    TapImageData? tapImageData;
+    OpenResponseData? openResponseData;
+
+    if (data.containsKey('items') && data.containsKey('slots')) {
+      dragDropData = DragDropData.fromMap(data);
+    } else if (data.containsKey('wheelSegments')) {
+      spinData = SpinData.fromMap(data);
+    } else if (data.containsKey('leftItems') && data.containsKey('rightItems')) {
+      connectData = ConnectData.fromMap(data);
+    } else if (data.containsKey('regions')) {
+      tapImageData = TapImageData.fromMap(data);
+    } else if (data.containsKey('acceptableAnswers')) {
+      openResponseData = OpenResponseData.fromMap(data);
+    }
+
+    final hints = hints.map((h) => BilingualHint(text: h.en, textAr: h.ar)).toList();
+
+    // Derive options from dataJson if the options list is empty.
+    List<String> resolvedOptions = List<String>.from(options);
+    if (resolvedOptions.isEmpty) {
+      if (tapImageData != null) {
+        resolvedOptions = tapImageData!.regions.map((r) => r.label).toList();
+      } else if (spinData != null) {
+        resolvedOptions = spinData!.wheelSegments.map((s) => s.label).toList();
+      } else if (dragDropData != null) {
+        resolvedOptions = dragDropData!.items.map((i) => i.label).toList();
+      } else if (connectData != null) {
+        resolvedOptions = [
+          ...connectData!.leftItems.map((i) => i.label),
+          ...connectData!.rightItems.map((i) => i.label),
+        ];
+      }
+    }
+
+    return QuestionData(
+      type: type,
+      prompt: prompt,
+      promptAr: promptAr,
+      options: resolvedOptions,
+      correctIndex: correctAnswer is int ? correctAnswer as int : null,
+      correctAnswer: correctAnswer,
+      dragDropData: dragDropData,
+      spinData: spinData,
+      connectData: connectData,
+      tapImageData: tapImageData,
+      openResponseData: openResponseData,
+      hints: hints,
+      xpReward: xpReward,
+    );
+        return QuestionData.fromCityActivity(
+      activityType: activityType,
+      prompt: prompt,
+      promptAr: promptAr,
+      options: options,
+      correctAnswer: correctAnswer,
+      dataJson: dataJson,
+      hintsJson: hints
+          .map((h) => {'text': h.en, 'textAr': h.ar})
+          .toList(),
+      correctionRulesJson: correctionRulesJson,
+      xpReward: xpReward,
+    );
+  }
 
 class CheckpointQuestion {
   CheckpointQuestion({
