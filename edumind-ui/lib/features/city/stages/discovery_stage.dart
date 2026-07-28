@@ -7,16 +7,23 @@ import 'package:flutter/material.dart';
 import '../../../core/middle_palette.dart';
 import '../../../core/palette.dart';
 import '../city_models.dart';
+import '../../../shared/widgets/mascot_animation.dart';
 
 class DiscoveryStage extends StatelessWidget {
-  const DiscoveryStage({super.key, required this.mission, required this.onContinue});
+  const DiscoveryStage({
+    super.key,
+    required this.mission,
+    required this.onContinue,
+  });
 
   final CityMission mission;
   final VoidCallback onContinue;
 
   @override
   Widget build(BuildContext context) {
-    final accent = Color(0xFF000000 | int.parse(mission.colorHex.replaceFirst('#', ''), radix: 16));
+    final accent = Color(
+      0xFF000000 | int.parse(mission.colorHex.replaceFirst('#', ''), radix: 16),
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -48,7 +55,8 @@ class DiscoveryStage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Label
+                
+                // Label (Fixed: uses 'child', not 'children')
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
@@ -64,7 +72,14 @@ class DiscoveryStage extends StatelessWidget {
                     ),
                   ),
                 ),
+                
                 const SizedBox(height: 16),
+                
+                // Mascot (Placed outside the Container, as intended)
+                const MascotAnimation(name: 'thinking', repeat: true, height: 100),
+                
+                const SizedBox(height: 16),
+                
                 // Arabic instruction
                 Text(
                   mission.discovery.ar,
@@ -77,6 +92,7 @@ class DiscoveryStage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
+                
                 // English
                 Text(
                   mission.discovery.en,
@@ -88,6 +104,7 @@ class DiscoveryStage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
+                
                 // Interactive placeholder hint
                 Container(
                   padding: const EdgeInsets.all(16),

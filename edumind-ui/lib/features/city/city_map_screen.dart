@@ -7,11 +7,12 @@ import 'package:flutter/material.dart';
 
 import '../../core/middle_palette.dart';
 import '../../core/palette.dart';
-import '../../widgets/mascot.dart';
+ 
 import 'city_models.dart';
 import 'city_mock_data.dart';
 import 'city_progress_store.dart';
 import 'city_mission_screen.dart';
+import '../../shared/widgets/mascot_animation.dart';
 
 /// The main city map — one decision: pick a mission. Each node shows its
 /// Arabic title, emoji, status, and progress. Tapping an available/in_progress
@@ -114,11 +115,7 @@ class _CityMapScreenState extends State<CityMapScreen> {
         children: [
           Row(
             children: [
-              const Mascot(
-                size: 48,
-                accent: MiddlePalette.blueInk,
-                expression: MascotExpression.happy,
-              ),
+             const MascotAnimation(name: 'idle2', repeat: true, height: 100),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(

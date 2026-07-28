@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../../core/api_client.dart';
 import '../../core/palette.dart';
 import '../../core/session.dart';
-import '../../widgets/mascot.dart';
+ 
+
+import '../../shared/widgets/mascot_animation.dart';
 import '../../widgets/stat_widgets.dart';
 
 /// Profile: league badge, lifetime stats, recent XP events.

@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import '../../app_localizations.dart';
 import '../../core/session.dart';
 import '../../core/stage.dart';
-import '../../widgets/mascot.dart';
+ 
 import '../context/interests_sheet.dart' show interestLabel;
 import 'tutor_chat.dart';
 import 'tutor_models.dart';
+
+import '../../shared/widgets/mascot_animation.dart';
+
 
 /// The "Ask Hudhud" tab: a question about any school subject goes to the
 /// backend tutor endpoint and comes back as a structured, pedagogy-first
@@ -60,7 +63,9 @@ class _AskScreenState extends State<AskScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Mascot(size: 44, accent: cs.primary, expression: MascotExpression.idle),
+                          const MascotAnimation(name: 'idle2', repeat: true, height: 100),
+
+
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(

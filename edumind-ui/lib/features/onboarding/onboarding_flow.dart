@@ -8,8 +8,9 @@ import '../../core/profile_bridge.dart';
 import '../../core/stage.dart';
 import '../../edumind_root.dart';
 import '../../language_provider.dart';
-import '../../widgets/mascot.dart';
+ 
 import 'onboarding_widgets.dart';
+import '../../shared/widgets/mascot_animation.dart';
 
 /// First-run learner onboarding — seven short screens, one primary action
 /// each: welcome → name → gender → stage & grade → interests → accent color
@@ -708,10 +709,7 @@ class _WelcomeStep extends StatelessWidget {
                       child: ArchHalo(
                         width: archW,
                         height: archH,
-                        child: Mascot(
-                          size: archH * 0.62,
-                          expression: MascotExpression.happy,
-                        ),
+                        child:const MascotAnimation(name: 'welcome3', repeat: true, height: 180),
                       ),
                     ),
                     const SizedBox(height: 22),
@@ -812,13 +810,7 @@ class _CompletionView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ArchHalo(
-              child: Mascot(
-                size: 158,
-                expression: MascotExpression.celebrating,
-                accent: accent,
-              ),
-            ),
+            const MascotAnimation(name: 'welcome3', repeat: true, height: 180),
             const SizedBox(height: 22),
             Text(
               l.translateWith('onb_done_hi', {'name': name}),

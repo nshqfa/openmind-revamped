@@ -4,7 +4,7 @@ import '../../app_localizations.dart';
 import '../../core/middle_palette.dart';
 import '../../core/palette.dart';
 import '../../core/session.dart';
-import '../../widgets/mascot.dart';
+ 
 import 'checkpoint_logic.dart';
 import 'experience_screen.dart';
 import 'journey_logic.dart';
@@ -14,6 +14,7 @@ import 'learn_models.dart';
 import 'learn_progress_store.dart';
 import 'readiness_logic.dart';
 import 'widgets/trail_map.dart';
+import '../../shared/widgets/mascot_animation.dart';
 
 /// One learning path's detail: identity header (icon, title, «يعبر عن»,
 /// honest ready-progress) above the winding station trail. Single job:
@@ -305,11 +306,11 @@ class _PathScreenState extends State<PathScreen> {
         children: [
           Row(
             children: [
-              const Mascot(
-                size: 44,
-                accent: MiddlePalette.blueInk,
-                expression: MascotExpression.celebrating,
-              ),
+              MascotAnimation(
+  name: 'happy', // Uses your happy.lottie file
+  repeat: true,
+  height: 120,   // Adjust height to match your layout
+),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(

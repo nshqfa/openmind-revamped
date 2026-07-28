@@ -14,6 +14,7 @@ import '../../../shared/widgets/activities/activity_open_response.dart';
 import '../../../shared/widgets/activities/activity_numeric_input.dart';
 import '../city_models.dart';
 import '../city_progress_store.dart';
+import '../../../shared/widgets/mascot_animation.dart';
 
 class ApplicationStage extends StatefulWidget {
   const ApplicationStage({super.key, required this.mission, required this.onContinue});

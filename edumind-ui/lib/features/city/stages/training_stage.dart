@@ -15,6 +15,7 @@ import '../../../shared/widgets/activities/activity_open_response.dart';
 import '../../../shared/widgets/activities/activity_numeric_input.dart';
 import '../city_models.dart';
 import '../city_progress_store.dart';
+import '../../../shared/widgets/mascot_animation.dart';
 
 class TrainingStage extends StatefulWidget {
   const TrainingStage({super.key, required this.mission, required this.onContinue});
@@ -30,6 +31,7 @@ class _TrainingStageState extends State<TrainingStage> {
   int _currentActivity = 0;
   int _xpEarned = 0;
   bool _allDone = false;
+  // MascotState _mascotState = MascotState.welcome;
 
   List<CityActivity> get _activities => widget.mission.primarySkill.trainingActivities;
 
@@ -202,7 +204,9 @@ class _TrainingStageState extends State<TrainingStage> {
             ),
             child: Column(
               children: [
+                
                 const Text('🎯', style: TextStyle(fontSize: 48)),
+                const MascotAnimation(name: 'happy', repeat: true, height: 100),
                 const SizedBox(height: 16),
                 const Text(
                   'أحسنت! أكملت التدريب',

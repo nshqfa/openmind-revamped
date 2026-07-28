@@ -5,7 +5,7 @@ import '../../core/palette.dart';
 import '../../core/session.dart';
 import '../../core/spec_assembler.dart';
 import '../../data/game_store.dart';
-import '../../widgets/mascot.dart';
+import '../../shared/widgets/mascot_animation.dart';
 import 'shell_controller.dart';
 import 'shell_player_io.dart'
     if (dart.library.js_interop) 'shell_player_web.dart';
@@ -24,16 +24,19 @@ class PlayerLaunch {
   }) : mode = PlayerMode.generated,
        fullSpec = null,
        saved = null;
+
   PlayerLaunch.replay(SavedGame this.saved)
     : mode = PlayerMode.replay,
       gameId = saved.id,
       stubSpec = null,
       fullSpec = jsonDecode(saved.specJson) as Map<String, dynamic>;
+
   PlayerLaunch.demo(Map<String, dynamic> this.fullSpec)
     : mode = PlayerMode.demo,
       gameId = null,
       stubSpec = null,
       saved = null;
+
   PlayerLaunch.review(Map<String, dynamic> this.fullSpec)
     : mode = PlayerMode.review,
       gameId = null,
@@ -233,7 +236,11 @@ class _PlayerScreenState extends State<PlayerScreen> {
               Expanded(
                 child: _html == null
                     ? const Center(
-                        child: Mascot(expression: MascotExpression.thinking),
+                        child: MascotAnimation(
+                          name: 'thinking',
+                          repeat: true,
+                          height: 100,
+                        ),
                       )
                     : ShellPlayer(
                         html: _html!,

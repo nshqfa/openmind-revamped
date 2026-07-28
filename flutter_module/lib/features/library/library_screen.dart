@@ -5,10 +5,13 @@ import '../../core/palette.dart';
 import '../../core/session.dart';
 import '../../data/game_store.dart';
 import '../../widgets/candy_button.dart';
-import '../../widgets/mascot.dart';
+ 
 import '../../widgets/stat_widgets.dart';
 import '../composer/composer_screen.dart';
 import '../player/player_screen.dart';
+
+import '../../shared/widgets/mascot_animation.dart';
+
 
 /// The library: locally saved games (specs in Drift/IndexedDB) — tap to
 /// replay instantly, fully offline. Server metadata merges in when online.
@@ -65,7 +68,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         child: Padding(
           padding: const EdgeInsets.all(28),
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Mascot(size: 130, accent: hexToColor(Session.instance.color)),
+              const MascotAnimation(name: 'idle2', repeat: true, height: 100),
             const SizedBox(height: 16),
             Text(tr(context, 'emptyLibrary'),
                 style: const TextStyle(

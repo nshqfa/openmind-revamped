@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../app_localizations.dart';
 import '../../core/middle_palette.dart';
-import '../../widgets/mascot.dart';
+ 
 import 'tutor_chat.dart';
 import 'tutor_models.dart';
+import '../../shared/widgets/mascot_animation.dart';
+
 
 /// The one contextual "Ask Hudhud" entry point. Every stuck-learner
 /// affordance — inside a lesson step, on a path's station list, wherever
@@ -40,11 +42,9 @@ Future<void> openAskHudhud(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Mascot(
-                    size: 40,
-                    accent: MiddlePalette.primaryAction,
-                    expression: MascotExpression.idle,
-                  ),
+        const MascotAnimation(name: 'idle2', repeat: true, height: 100),
+
+
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(

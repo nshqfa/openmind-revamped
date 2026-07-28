@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/middle_palette.dart';
 import '../../core/palette.dart';
-import '../../widgets/mascot.dart';
+ 
 import 'city_models.dart';
 import 'city_progress_store.dart';
 import 'stages/scene_stage.dart';
@@ -16,6 +16,8 @@ import 'stages/explanation_stage.dart';
 import 'stages/training_stage.dart';
 import 'stages/application_stage.dart';
 import 'stages/verification_stage.dart';
+import '../../shared/widgets/mascot_animation.dart';
+
 
 /// The 6-stage mission player. Shows a horizontal step indicator at the top
 /// and the current stage's content below. The learner advances through stages
@@ -112,11 +114,7 @@ class _CityMissionScreenState extends State<CityMissionScreen> {
         ),
         title: Row(
           children: [
-            const Mascot(
-              size: 40,
-              accent: MiddlePalette.success,
-              expression: MascotExpression.celebrating,
-            ),
+            const MascotAnimation(name: 'thinking', repeat: true, height: 100),
             const SizedBox(width: 10),
             const Expanded(
               child: Text(

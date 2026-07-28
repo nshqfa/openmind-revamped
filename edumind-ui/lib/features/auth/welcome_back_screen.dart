@@ -4,8 +4,9 @@ import '../../app_localizations.dart';
 import '../../core/api_client.dart';
 import '../../core/session.dart';
 import '../../edumind_root.dart';
-import '../../widgets/mascot.dart';
+ 
 import '../onboarding/onboarding_flow.dart';
+import '../../shared/widgets/mascot_animation.dart';
 
 /// Shown once per cold start when a saved device account exists. The real
 /// backend auth contract is a device token minted at onboarding — no email,
@@ -75,7 +76,8 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Mascot(size: 120, accent: cs.primary, expression: MascotExpression.happy),
+                const MascotAnimation(name: 'welcome3', repeat: true, height: 100),
+
                 const SizedBox(height: 20),
                 Text(
                   l.translateWith('welcome_back_title', {'name': Session.instance.name}),

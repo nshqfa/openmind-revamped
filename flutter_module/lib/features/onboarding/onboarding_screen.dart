@@ -3,9 +3,12 @@ import '../../core/api_client.dart';
 import '../../core/palette.dart';
 import '../../core/session.dart';
 import '../../widgets/candy_button.dart';
-import '../../widgets/mascot.dart';
+ 
 import '../dashboard/dashboard_screen.dart';
 import '../settings/settings_screen.dart';
+
+import '../../shared/widgets/mascot_animation.dart';
+
 
 /// Mascot-guided onboarding: name → grade (+optional gender) → language →
 /// color → interest → daily goal → register. Nickname only — never a real

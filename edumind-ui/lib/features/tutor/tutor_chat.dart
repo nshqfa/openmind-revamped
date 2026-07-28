@@ -7,9 +7,9 @@ import '../../core/palette.dart';
 import '../../core/registration_sync.dart';
 import '../../core/session.dart';
 import '../../core/stage.dart';
-import '../../widgets/mascot.dart';
 import 'blocks/tutor_block_registry.dart';
 import 'tutor_models.dart';
+import '../../shared/widgets/mascot_animation.dart';
 
 /// One rendered chat turn. Tutor turns keep the structured reply so the UI
 /// can render type chips, follow-up questions, suggested actions and — when
@@ -512,10 +512,13 @@ class TutorChatState extends State<TutorChat> {
           // send attempt) — this banner just keeps the learner honestly
           // informed meanwhile, never blocking the rest of the app.
           if (!Session.instance.registered) _pendingRegistrationBanner(l, cs),
+          
+          // FIXED: Removed the trailing comma after the 'if' block
           if (middle)
-            Mascot(size: 64, accent: cs.primary, expression: MascotExpression.idle)
+            const MascotAnimation(name: 'idle2', repeat: true, height: 100)
           else
-            const Mascot(size: 96, expression: MascotExpression.happy),
+            const MascotAnimation(name: 'happy', repeat: true, height: 100),
+
           const SizedBox(height: 10),
           Text(
             l.translate(widget.isHelpSheet ? 'tutor_sheet_welcome' : 'tutor_welcome'),

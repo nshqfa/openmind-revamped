@@ -4,7 +4,7 @@ import '../../core/palette.dart';
 import '../../core/session.dart';
 import '../../data/game_store.dart';
 import '../../widgets/candy_button.dart';
-import '../../widgets/mascot.dart';
+ 
 import '../../widgets/stat_widgets.dart';
 import '../composer/composer_screen.dart';
 import '../demos/demos_screen.dart';
@@ -12,6 +12,7 @@ import '../library/library_screen.dart';
 import '../player/player_screen.dart';
 import '../profile/profile_screen.dart';
 import '../settings/settings_screen.dart';
+import '../../shared/widgets/mascot_animation.dart';
 
 /// Home: XP bar, streak flame, daily-goal ring, Review tile, recent games,
 /// and the big NEW GAME button. Bottom nav: home / library / profile.
@@ -92,7 +93,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Palette.radiusCard)),
           title: Row(children: [
             // post-game feedback = rewards = the bee's moment
-            const Mascot(size: 56, expression: MascotExpression.celebrating, character: MascotCharacter.bee),
+              const MascotAnimation(name: 'happy', repeat: true, height: 100),
+
             const SizedBox(width: 10),
             Expanded(
               child: Text(feedback['headline'] as String,
@@ -143,7 +145,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Row(children: [
             // Hudhud leads the home screen — curious idle (sways, blinks, head-cocks)
-            Mascot(size: 72, accent: accent, expression: MascotExpression.idle),
+             const MascotAnimation(name: 'idle2', repeat: true, height: 100),
+
+
+
             const SizedBox(width: 8),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -190,14 +195,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   // Nahla owns progress: she holds up the XP hex once the
                   // daily goal is reached, and cheers quietly until then
-                  Mascot(
-                    size: 60,
-                    accent: accent,
-                    character: MascotCharacter.bee,
-                    expression:
-                        reached ? MascotExpression.celebrating : MascotExpression.idle,
-                    showXp: reached,
-                  ),
+                  const MascotAnimation(name: 'thinking', repeat: true, height: 100),
+
+
                 ]);
               }),
             ]),

@@ -12,6 +12,8 @@ import '../../../core/palette.dart';
 import '../../../widgets/mascot.dart';
 import '../city_models.dart';
 import '../city_progress_store.dart';
+import '../../../shared/widgets/mascot_animation.dart';
+
 
 class VerificationStage extends StatefulWidget {
   const VerificationStage({super.key, required this.mission, required this.onComplete});
@@ -854,10 +856,7 @@ class _VerificationStageState extends State<VerificationStage> {
             ),
             child: Column(
               children: [
-                Text(
-                  _passed ? '🎉' : '💪',
-                  style: const TextStyle(fontSize: 56),
-                ),
+                const MascotAnimation(name: 'thinking', repeat: true, height: 100),
                 const SizedBox(height: 16),
                 Text(
                   _passed ? 'أحسنت! نجحت في التحقق!' : 'لم تصل للعتبة بعد',

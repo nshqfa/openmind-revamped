@@ -5,8 +5,9 @@ import '../../core/palette.dart';
 import '../../core/session.dart';
 import '../../core/spec_assembler.dart';
 import '../../data/game_store.dart';
-import '../../widgets/mascot.dart';
+ 
 import 'shell_controller.dart';
+import '../../shared/widgets/mascot_animation.dart';
 import 'shell_player_io.dart'
     if (dart.library.js_interop) 'shell_player_web.dart';
 
@@ -233,7 +234,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
               Expanded(
                 child: _html == null
                     ? const Center(
-                        child: Mascot(expression: MascotExpression.thinking),
+                        child:    const MascotAnimation(name: 'thinking', repeat: true, height: 100),
                       )
                     : ShellPlayer(
                         html: _html!,

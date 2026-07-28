@@ -3,9 +3,11 @@ import '../../core/api_client.dart';
 import '../../core/palette.dart';
 import '../../core/session.dart';
 import '../../widgets/candy_button.dart';
-import '../../widgets/mascot.dart';
+ 
 import '../../widgets/stat_widgets.dart';
 import '../player/player_screen.dart';
+import '../../shared/widgets/mascot_animation.dart';
+
 
 /// The composer: subject, free-text topic, game type with visual previews,
 /// theme, session length, difficulty → POST /games → instant tutorial play
@@ -126,7 +128,7 @@ class _ComposerScreenState extends State<ComposerScreen> {
             EduCard(
               color: const Color(0xFF2A3A1F),
               child: Row(children: [
-                const Mascot(size: 48, expression: MascotExpression.thinking),
+                const MascotAnimation(name: 'thinking', repeat: true, height: 100),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

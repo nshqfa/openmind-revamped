@@ -6,11 +6,15 @@ import 'package:flutter/material.dart';
 
 import '../../../core/middle_palette.dart';
 import '../../../core/palette.dart';
-import '../../../widgets/mascot.dart';
 import '../city_models.dart';
+import '../../../shared/widgets/mascot_animation.dart';
 
 class SceneStage extends StatelessWidget {
-  const SceneStage({super.key, required this.mission, required this.onContinue});
+  const SceneStage({
+    super.key,
+    required this.mission,
+    required this.onContinue,
+  });
 
   final CityMission mission;
   final VoidCallback onContinue;
@@ -49,7 +53,8 @@ class SceneStage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Stage label
+                
+                // Stage label (FIXED: uses 'child', not 'children')
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
@@ -65,7 +70,14 @@ class SceneStage extends StatelessWidget {
                     ),
                   ),
                 ),
+                
                 const SizedBox(height: 16),
+                
+                // Mascot (Moved outside the Container so it displays correctly)
+                const MascotAnimation(name: 'thinking', repeat: true, height: 100),
+                
+                const SizedBox(height: 16),
+                
                 // Arabic text
                 Text(
                   mission.scene.ar,
@@ -78,6 +90,7 @@ class SceneStage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
+                
                 // English text (smaller)
                 Text(
                   mission.scene.en,
@@ -92,6 +105,7 @@ class SceneStage extends StatelessWidget {
             ),
           ),
           const Spacer(flex: 1),
+          
           // Continue button
           SizedBox(
             width: double.infinity,

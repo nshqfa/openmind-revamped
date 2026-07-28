@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app_localizations.dart';
 import '../../core/middle_palette.dart';
 import '../../core/palette.dart';
-import '../../widgets/mascot.dart';
+import '../../shared/widgets/mascot_animation.dart'; // Ensure this import exists
 
 /// The honest grades-8/9 state: their curriculum is not ready, and we never
 /// dress grade-7 content up as theirs. Names the learner's real grade, shows
@@ -27,11 +27,12 @@ class GradeSoonView extends StatelessWidget {
         shrinkWrap: true,
         padding: const EdgeInsets.symmetric(horizontal: 28),
         children: [
-          const Center(
-            child: Mascot(
-              size: 96,
-              accent: MiddlePalette.blueInk,
-              expression: MascotExpression.idle,
+          // FIXED: Removed 'const' to prevent "Not a constant expression" errors
+          Center(
+            child: MascotAnimation(
+              name: 'idle2',
+              repeat: true,
+              height: 180,
             ),
           ),
           const SizedBox(height: 18),

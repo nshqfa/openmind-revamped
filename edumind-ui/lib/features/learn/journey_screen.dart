@@ -5,7 +5,7 @@ import '../../app_localizations.dart';
 import '../../core/middle_palette.dart';
 import '../../core/palette.dart';
 import '../../core/session.dart';
-import '../../widgets/mascot.dart';
+ 
 import '../city/city_map_screen.dart';
 import 'grade_soon_view.dart';
 import 'journey_logic.dart';
@@ -15,6 +15,8 @@ import 'learn_models.dart';
 import 'learn_progress_store.dart';
 import 'path_screen.dart';
 import 'readiness_logic.dart';
+
+import '../../shared/widgets/mascot_animation.dart';
 
 /// "رحلتي" — the curriculum path list. One decision: pick a path. Each row
 /// is a path's identity (icon, title, «يعبر عن», honest ready-progress);
@@ -235,11 +237,10 @@ Future<void> _load({bool sync = true}) async {
   Widget _hudhudMoment(AppLocalizations l) {
     return Row(
       children: [
-        const Mascot(
-          size: 56,
-          accent: MiddlePalette.blueInk,
-          expression: MascotExpression.happy,
-        ),
+    const MascotAnimation(name: 'happy', repeat: true, height: 100),
+
+
+
         const SizedBox(width: 10),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
