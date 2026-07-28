@@ -111,7 +111,7 @@ class _TrainingStageState extends State<TrainingStage> {
     return switch (activity.activityType) {
       'choice' => ActivityChoice(
           key: key,
-          question: qd,
+           data: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),
@@ -129,13 +129,13 @@ class _TrainingStageState extends State<TrainingStage> {
         ),
       'spin' => ActivitySpin(
           key: key,
-          question: qd,
+          data: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),
       'connect' => ActivityConnect(
           key: key,
-          question: qd,
+           data: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),
@@ -153,7 +153,7 @@ class _TrainingStageState extends State<TrainingStage> {
         ),
       _ => ActivityChoice(
           key: key,
-          question: qd,
+           data: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),

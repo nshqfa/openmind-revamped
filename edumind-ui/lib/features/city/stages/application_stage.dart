@@ -80,7 +80,7 @@ class _ApplicationStageState extends State<ApplicationStage> {
     final qd = activity.toQuestionData();
     return switch (activity.activityType) {
       'choice' => ActivityChoice(
-          question: qd,
+           data: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),
@@ -95,12 +95,12 @@ class _ApplicationStageState extends State<ApplicationStage> {
           onCorrect: _onCorrect,
         ),
       'spin' => ActivitySpin(
-          question: qd,
+          data: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),
       'connect' => ActivityConnect(
-          question: qd,
+           data: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),
@@ -115,7 +115,7 @@ class _ApplicationStageState extends State<ApplicationStage> {
           onCorrect: _onCorrect,
         ),
       _ => ActivityChoice(
-          question: qd,
+          data: qd,
           accent: accent,
           onCorrect: _onCorrect,
         ),

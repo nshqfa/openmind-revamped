@@ -12,7 +12,6 @@ import 'dart:convert';
 
 // import '../../shared/question_types/question_models.dart' show QuestionType;
 import '../../shared/question_types/question_models.dart' show QuestionType, QuestionData, BilingualHint, DragDropData, SpinData, ConnectData, TapImageData, OpenResponseData;
-import '../../shared/question_types/question_models.dart' show QuestionType, QuestionData;
 
 // ─── Mission ──────────────────────────────────────────────────────────────────
 
@@ -109,8 +108,6 @@ class CityActivity {
 
   QuestionType get questionType => QuestionType.fromString(activityType);
 
-}
-
 /// Convert this CityActivity to the shared [QuestionData] model.
   /// This properly parses [dataJson] for structured types (drag_drop, spin,
   /// connect, tap_image, open_response) and flattens hints.
@@ -138,7 +135,8 @@ class CityActivity {
       openResponseData = OpenResponseData.fromMap(data);
     }
 
-    final hints = hints.map((h) => BilingualHint(text: h.en, textAr: h.ar)).toList();
+    
+   final hintList = hints.map((h) => BilingualHint(text: h.en, textAr: h.ar)).toList();
 
     // Derive options from dataJson if the options list is empty.
     List<String> resolvedOptions = List<String>.from(options);
@@ -169,24 +167,13 @@ class CityActivity {
       connectData: connectData,
       tapImageData: tapImageData,
       openResponseData: openResponseData,
-      hints: hints,
+       hints: hintList,
       xpReward: xpReward,
     );
-        return QuestionData.fromCityActivity(
-      activityType: activityType,
-      prompt: prompt,
-      promptAr: promptAr,
-      options: options,
-      correctAnswer: correctAnswer,
-      dataJson: dataJson,
-      hintsJson: hints
-          .map((h) => {'text': h.en, 'textAr': h.ar})
-          .toList(),
-      correctionRulesJson: correctionRulesJson,
-      xpReward: xpReward,
-    );
+       
   }
 
+}
 class CheckpointQuestion {
   CheckpointQuestion({
     required this.id,

@@ -422,11 +422,11 @@ class _ActivityTapImageState extends State<ActivityTapImage> {
       _CardState.tapped => _TileColors(
           border: widget.accent, bg: widget.accent.withValues(alpha: 0.08),
           text: widget.accent, icon: widget.accent, fontWeight: FontWeight.w700),
-      _CardState.correctSelected => const _TileColors(
-          border: MiddlePalette.success, bg: MiddlePalette.success.withValues(alpha: 0.08),
+     _CardState.correctSelected => _TileColors(
+    border: MiddlePalette.success, bg: MiddlePalette.success.withValues(alpha: 0.08),
           text: MiddlePalette.success, icon: MiddlePalette.success, fontWeight: FontWeight.w700),
-      _CardState.correctMissed => const _TileColors(
-          border: MiddlePalette.success, bg: MiddlePalette.success.withValues(alpha: 0.04),
+     _CardState.correctMissed => _TileColors(
+    border: MiddlePalette.success, bg: MiddlePalette.success.withValues(alpha: 0.04),
           text: MiddlePalette.success, icon: MiddlePalette.success, fontWeight: FontWeight.w700),
       _CardState.wrongSelected => const _TileColors(
           border: MiddlePalette.retryYellow, bg: MiddlePalette.retryYellowSoft,

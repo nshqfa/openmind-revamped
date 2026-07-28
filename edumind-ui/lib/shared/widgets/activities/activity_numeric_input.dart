@@ -231,9 +231,8 @@ class _ActivityNumericInputState extends State<ActivityNumericInput> {
                 color: MiddlePalette.retryYellowInk,
               ),
             ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
